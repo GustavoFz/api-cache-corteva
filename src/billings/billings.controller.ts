@@ -1,9 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { BillingsService } from './billings.service';
-import { CreateBillingDto } from './dto/create-billing.dto';
-import { UpdateBillingDto } from './dto/update-billing.dto';
 
-@Controller('billings')
+@Controller()
 export class BillingsController {
   constructor(private readonly billingsService: BillingsService) {}
 
@@ -11,5 +9,4 @@ export class BillingsController {
   findOne(@Param('id') id: string) {
     return this.billingsService.findOne(+id);
   }
-
 }

@@ -1,9 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { CustomersService } from './customers.service';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
 
-@Controller('customers')
+@Controller()
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
@@ -11,5 +9,4 @@ export class CustomersController {
   findOne(@Param('id') id: string) {
     return this.customersService.findOne(+id);
   }
-
 }
