@@ -12,19 +12,6 @@ export class CompaniesService {
 
   url = this.env.get<string>('API_DB_URL');
 
-  async findAll() {
-    const data = {
-      query:
-        "SELECT codigo as codi_rev, nome as raza_rev, nome as fant_rev, inscEstadual as inse_rev, CNPJCPF as cnpj_rev, (CASE WHEN codigo=1 THEN '1100122' WHEN codigo=2 THEN '1100304' END) as muni_rev, telefone as fone_rev, 'sac@rical.com.br' as mail_rev FROM Cad.Empresa WHERE codigo IN (1,2)",
-    };
-
-    const response = await firstValueFrom(
-      this.httpService.post(this.url, data),
-    );
-
-    return response.data.result.content;
-  }
-
   async findOne(id: number) {
     const company = [1, 2];
     const data = {
@@ -41,6 +28,16 @@ export class CompaniesService {
       this.httpService.post(this.url, data),
     );
 
-    return response.data.result.content;
+    const empresas = response.data.result.content;
+    return empresas.map((empresa) => {
+      for (const prop in empresa) {
+        if (empresa[prop] == '') {
+          empresa[prop] = null;
+        }
+      }
+      return empresa;
+    });
+
+    //return response.data.result.content;
   }
 }
