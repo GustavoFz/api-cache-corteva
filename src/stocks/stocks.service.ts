@@ -45,6 +45,16 @@ export class StocksService {
       this.httpService.post(this.url, data),
     );
 
-    return response.data.result.content;
+    const produtos = response.data.result.content;
+    return produtos.map((produto) => {
+      for (const prop in produto) {
+        if (produto[prop] == '') {
+          produto[prop] = null;
+        }
+      }
+      return produto;
+    });
+
+    //return response.data.result.content;
   }
 }
