@@ -54,7 +54,5 @@ export class StocksService {
       }
       return produto;
     });
-
-    //return response.data.result.content;
   }
 }
