@@ -5,8 +5,12 @@ import { InvoicesService } from './invoices.service';
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.invoicesService.findOne(+id);
+  @Get(':id/:dateStart/:dateEnd')
+  findOne(
+    @Param('id') id: string,
+    @Param('dateStart') dateStart: string,
+    @Param('dateEnd') dateEnd: string,
+  ) {
+    return this.invoicesService.findOne(+id, dateStart, dateEnd);
   }
 }
