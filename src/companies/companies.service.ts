@@ -15,9 +15,7 @@ export class CompaniesService {
   async findOne(id: number) {
     const company = [1, 2];
     const data = {
-      query:
-        "SELECT codigo as codi_rev, nome as raza_rev, nome as fant_rev, inscEstadual as inse_rev, CNPJCPF as cnpj_rev, (CASE WHEN codigo=1 THEN '1100122' WHEN codigo=2 THEN '1100304' END) as muni_rev, telefone as fone_rev, 'sac@rical.com.br' as mail_rev FROM Cad.Empresa WHERE codigo =" +
-        id,
+      query: `SELECT STRING(codigo) as codi_rev, nome as raza_rev, nome as fant_rev, inscEstadual as inse_rev, CNPJCPF as cnpj_rev, (CASE WHEN codigo=1 THEN '1100122' WHEN codigo=2 THEN '1100304' END) as muni_rev, telefone as fone_rev, 'sac@rical.com.br' as mail_rev FROM Cad.Empresa WHERE codigo=${id}`,
     };
 
     if (!company.includes(id)) {
@@ -37,7 +35,5 @@ export class CompaniesService {
       }
       return empresa;
     });
-
-    //return response.data.result.content;
   }
 }
