@@ -34,6 +34,7 @@ export class StocksService {
     if (date1 > date2) {
       throw new BadRequestException();
     }
+    // Naturaza 8 Produtos revenda
     // Usar os metodos abaixo para alterar a saida dos dados
     // %EXTERNAL %INTERNA %ODBCOUT
     // exemplos TO_CHAR(dataLcto,'YYYY-MM-DD') e %ODBCOUT(dataLcto)
@@ -43,7 +44,6 @@ export class StocksService {
     const data = {
       query: `SELECT codEmpresa as codi_rev, null as codi_fab, codItem as codi_pro, codItem->classificacaoFiscal->classificacaoFiscal as ncmp_pro, codItem->nome as desc_pro, codItem->unidadeMedida as unid_pro, null as barr_pro, null as cind_pro, %ODBCOUT(dataLcto) as date_pro, null as lote_pro, +GREATEST(COALESCE(SUM(CASE WHEN operacao1='+' THEN qtdMovto ELSE -qtdMovto END), 0), 0) as qtde_pro, +GREATEST(COALESCE(SUM(CASE WHEN operacao1='+' THEN qtdMovto ELSE -qtdMovto END), 0), 0) as qtdi_pro, +0 as qttr_pro, +0 as qtbl_pro, null as trat_pro, CASE WHEN codItem->classificacaoFiscal->classificacaoFiscal LIKE '12%' THEN 'S' ELSE 'D' END as fsem_pro FROM Est.Movimento WHERE codItem in (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12") AND codItem->origem != 'Fabricação Própria' AND codEmpresa=${id} AND dataLcto>=DATE("${dateStart}") AND dataLcto<=DATE("${dateEnd}") AND codNatureza1 = 8 GROUP BY codItem ORDER BY dataLcto DESC`,
     };
-    // "SELECT codPedido, codEmpresa, codRepresentante, procedencia, codTipoNota, dataDigitacao, dataEmissao, dataPrevFat, dataFaturamento, fatParcial, nomeOper, numNotaFiscal, pedProntEnt, situacao, qtdeItens, qtdPecasPedido, qtdPecasFaturadas FROM Ped.Pedido WHERE codEmpresa=1 AND situacao in (0,1,5) AND nomeOper='Gerado via portal do produtor'"
     const response = await firstValueFrom(
       this.httpService.post(this.url, data),
     );
