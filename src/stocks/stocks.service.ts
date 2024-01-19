@@ -36,7 +36,7 @@ export class StocksService {
     }
     // Naturaza 8 Produtos revenda
     // Usar os metodos abaixo para alterar a saida dos dados
-    // %EXTERNAL %INTERNA %ODBCOUT
+    // %EXTERNAL %INTERNAL %ODBCOUT
     // exemplos TO_CHAR(dataLcto,'YYYY-MM-DD') e %ODBCOUT(dataLcto)
 
     const data = {
