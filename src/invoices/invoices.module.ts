@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { InvoicesService } from './invoices.service';
+import { DbService } from '../db/db.service';
 import { InvoicesController } from './invoices.controller';
+import { InvoicesService } from './invoices.service';
 
 @Module({
   controllers: [InvoicesController],
-  providers: [InvoicesService],
+  providers: [InvoicesService, DbService],
 })
 export class InvoicesModule {}

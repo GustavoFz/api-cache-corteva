@@ -6,6 +6,8 @@ import { AppService } from './app.service';
 import { BillingsModule } from './billings/billings.module';
 import { CompaniesModule } from './companies/companies.module';
 import { CustomersModule } from './customers/customers.module';
+import { DbModule } from './db/db.module';
+import { ExtractAndInsertModule } from './extract-and-insert/extract-and-insert.module';
 import { GlobalhttpmoduleModule } from './globalhttpmodule/globalhttpmodule.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { StocksModule } from './stocks/stocks.module';
@@ -13,11 +15,13 @@ import { StocksModule } from './stocks/stocks.module';
 @Module({
   imports: [
     StocksModule,
+    DbModule,
     InvoicesModule,
     BillingsModule,
     CustomersModule,
     GlobalhttpmoduleModule,
     CompaniesModule,
+    ExtractAndInsertModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
