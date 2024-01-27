@@ -85,25 +85,40 @@ export class ExtractAndInsertService {
 
   onModuleInit() {
     this.selectAndInput(
-      'notaSaida',
-      'SELECT nota.id, nota.codPedido, nota.codEmpresa, nota.numero, nota.codSerie, nota.dataEmissao, nota.codCondVenda, nota.CondicaoDeVenda->descricao, nota.codTipoDeNota, %ODBCOUT(nota.codTipoDeNota->tipoFinalNfe+1) AS codTipoDeNota, %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS DescTipoDeNota, nota.situacao, nota.codNatOperacao, nota.codCliente, nota.codRepresentante, nota.Representante->nome AS nomeRepresentante, nota.Representante->cnpjcpf AS cnpjcpfRepresentante FROM fat.notafiscal AS nota WHERE nota.codEmpresa IN (1,2) AND nota.codTipoDeNota->tipoFinalNfe!="" AND nota.dataEmissao>=DATE("2017-01-01")',
-      'situacao=VALUES(situacao)',
+      'notaEntrada',
+      'SELECT nota.id, nota.codEmpresa, TO_NUMBER(nota.numDocumento) AS numero, nota.codSerie, nota.dataEmissao, nota.condPgto AS condPagamento, %ODBCOUT(nota.especieDocumento) AS codTipoDeNota, %EXTERNAL(nota.especieDocumento) AS descTipoDeNota, STRING(nota.codEmpresa, "||", nota.fornecedor) AS idFornecedor, nota.fornecedor AS codFornecedor, naturezaOperacao, STRING(chave.chavenfe) AS chave FROM est.notafiscalentrada AS nota JOIN est.NotaFiscalEntradaChavElet AS chave ON nota.codEmpresa=chave.codEmpresa AND nota.numDocumento=chave.numDocumento AND nota.codSerie=chave.codSerie AND nota.fornecedor=chave.fornecedor WHERE nota.codEmpresa IN (1,2) AND nota.dataEmissao>=DATE("2017-01-01")',
+      'condPagamento=VALUES(condPagamento)',
     );
   }
 
   @Cron(CronExpression.EVERY_HOUR)
   async processData(): Promise<void> {
     try {
+      //EMPRESA
       this.selectAndInput(
         'empresa',
         'SELECT empresa.id AS id, empresa.cnpjCpf AS cnpjCpf, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5)',
         'telefone=VALUES(telefone), situacao=VALUES(situacao)',
       );
+      //FORNECEDOR
       this.selectAndInput(
         'fornecedor',
         'SELECT fornecedor.id AS id, fornecedor.codigo, fornecedor.codEmpresa, fornecedor.cnpjCpf AS cnpjCpf, fornecedor.inscEstadual, fornecedor.nome AS razaoSocial, COALESCE(fornecedor.fantasia, "") AS nomeFantasia, fornecedor.cep AS cep, fornecedor.endereco, fornecedor.nroEndereco AS numeroEndereco, fornecedor.bairro, fornecedor.nomeCidade AS cidade, fornecedor.siglaEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(fornecedor.telefone, fornecedor.telefone1) AS telefone, fornecedor.email, COALESCE(fornecedor.dataSituacao, DATE("2000-01-01")) AS dataRegistro FROM cpg.fornecedor AS fornecedor JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(fornecedor.cep,1,5) where codEmpresa!=99',
         'telefone=VALUES(telefone), email=VALUES(email)',
       );
+      //NOTA DE SAIDA
+      this.selectAndInput(
+        'notaSaida',
+        'SELECT nota.id, TO_NUMBER(nota.codPedido) AS codPedido, nota.codEmpresa, nota.numero, nota.codSerie, chave.chaveAcesso AS chave, nota.dataEmissao, nota.codCondVenda, nota.CondicaoDeVenda->descricao, nota.codTipoDeNota, %ODBCOUT(nota.codTipoDeNota->tipoFinalNfe+1) AS codTipoDeNota, %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS DescTipoDeNota, nota.situacao, nota.codNatOperacao, nota.Cliente AS idCliente, nota.codCliente, nota.codRepresentante, nota.Representante->nome AS nomeRepresentante, nota.Representante->cnpjcpf AS cnpjcpfRepresentante FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (1,2) AND nota.codTipoDeNota->tipoFinalNfe!="" AND chave.chaveAcesso!="" AND nota.dataEmissao>=DATE("2017-01-01")',
+        'situacao=VALUES(situacao)',
+      );
+      //NOTA DE ENTRADA
+      this.selectAndInput(
+        'notaEntrada',
+        'SELECT nota.id, nota.codEmpresa, TO_NUMBER(nota.numDocumento) AS numero, nota.codSerie, nota.dataEmissao, nota.condPgto AS condPagamento, %ODBCOUT(nota.especieDocumento) AS codTipoDeNota, %EXTERNAL(nota.especieDocumento) AS descTipoDeNota, STRING(nota.codEmpresa, "||", nota.fornecedor) AS idFornecedor, nota.fornecedor AS codFornecedor, naturezaOperacao, STRING(chave.chavenfe) AS chave FROM est.notafiscalentrada AS nota JOIN est.NotaFiscalEntradaChavElet AS chave ON nota.codEmpresa=chave.codEmpresa AND nota.numDocumento=chave.numDocumento AND nota.codSerie=chave.codSerie AND nota.fornecedor=chave.fornecedor WHERE nota.codEmpresa IN (1,2) AND nota.dataEmissao>=DATE("2017-01-01")',
+        'condPagamento=VALUES(condPagamento)',
+      );
+      //MOVIMENTACAO DE ESTOQUE
       this.selectAndInputMov(
         'movimentacao',
         'select id AS id, numDocto, codEmpresa, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND tipoPpcp NOT IN (90,91,5) AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12")',
