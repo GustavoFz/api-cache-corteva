@@ -26,6 +26,7 @@ export class ExtractAndInsertService {
       const values = rows.map((row: any) =>
         columns.map((column) => row[column]),
       );
+      console.log(rows);
 
       const connection = await mysql.createConnection(this.targetDbConfig);
       await connection.query(
@@ -82,7 +83,13 @@ export class ExtractAndInsertService {
     }
   }
 
-  onModuleInit() {}
+  onModuleInit() {
+    this.selectAndInput(
+      'notaSaida',
+      'SELECT nota.id, nota.codPedido, nota.codEmpresa, nota.numero, nota.codSerie, nota.dataEmissao, nota.codCondVenda, nota.CondicaoDeVenda->descricao, nota.codTipoDeNota, %ODBCOUT(nota.codTipoDeNota->tipoFinalNfe+1) AS codTipoDeNota, %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS DescTipoDeNota, nota.situacao, nota.codNatOperacao, nota.codCliente, nota.codRepresentante, nota.Representante->nome AS nomeRepresentante, nota.Representante->cnpjcpf AS cnpjcpfRepresentante FROM fat.notafiscal AS nota WHERE nota.codEmpresa IN (1,2) AND nota.codTipoDeNota->tipoFinalNfe!="" AND nota.dataEmissao>=DATE("2017-01-01")',
+      'situacao=VALUES(situacao)',
+    );
+  }
 
   @Cron(CronExpression.EVERY_HOUR)
   async processData(): Promise<void> {
@@ -99,7 +106,7 @@ export class ExtractAndInsertService {
       );
       this.selectAndInputMov(
         'movimentacao',
-        'select id AS id, numDocto, codEmpresa, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, serieFiscal from est.movimento where codNatureza1=8 AND tipoPpcp NOT IN (90,91,5) AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12")',
+        'select id AS id, numDocto, codEmpresa, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND tipoPpcp NOT IN (90,91,5) AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12")',
       );
       console.log('Data processed successfully.');
     } catch (error) {
