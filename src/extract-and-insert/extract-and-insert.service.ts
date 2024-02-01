@@ -85,9 +85,9 @@ export class ExtractAndInsertService {
 
   onModuleInit() {
     this.selectAndInput(
-      'notaEntrada',
-      'SELECT nota.id, nota.codEmpresa, TO_NUMBER(nota.numDocumento) AS numero, nota.codSerie, nota.dataEmissao, nota.condPgto AS condPagamento, %ODBCOUT(nota.especieDocumento) AS codTipoDeNota, %EXTERNAL(nota.especieDocumento) AS descTipoDeNota, STRING(nota.codEmpresa, "||", nota.fornecedor) AS idFornecedor, nota.fornecedor AS codFornecedor, naturezaOperacao, STRING(chave.chavenfe) AS chave FROM est.notafiscalentrada AS nota JOIN est.NotaFiscalEntradaChavElet AS chave ON nota.codEmpresa=chave.codEmpresa AND nota.numDocumento=chave.numDocumento AND nota.codSerie=chave.codSerie AND nota.fornecedor=chave.fornecedor WHERE nota.codEmpresa IN (1,2) AND nota.dataEmissao>=DATE("2017-01-01")',
-      'condPagamento=VALUES(condPagamento)',
+      'itemNotaSaida',
+      'SELECT item.id, item.codEmpresa, TO_NUMBER(item.numero) AS numeroNota, item.codProduto AS codItem, item.codProduto->nome as nomeItem, item.vlrItem AS vlrItem, item.precoUnitarioFloat AS vlrUnitarioItem, item.qtdeFaturada AS qtdItem, item.codProduto->unidadeMedida AS unidMedida, item.vlrDesconto, item.codClassifFiscal->classificacaoFiscal AS ncm, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, item.dataEmissao FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (1,2) AND ISNUMERIC(item.codProduto)=1 AND item.dataEmissao>=DATE("2017-01-01")',
+      'qtdItem=VALUES(qtdItem)',
     );
   }
 
@@ -122,6 +122,18 @@ export class ExtractAndInsertService {
       this.selectAndInputMov(
         'movimentacao',
         'select id AS id, numDocto, codEmpresa, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND tipoPpcp NOT IN (90,91,5) AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12")',
+      );
+      //ITEM NOTA FISCAL DE SAIDA
+      this.selectAndInput(
+        'itemNotaSaida',
+        'SELECT item.id, item.codEmpresa, TO_NUMBER(item.numero) AS numeroNota, item.codProduto AS codItem, item.codProduto->nome as nomeItem, item.vlrItem AS vlrItem, item.precoUnitarioFloat AS vlrUnitarioItem, item.qtdeFaturada AS qtdItem, item.codProduto->unidadeMedida AS unidMedida, item.vlrDesconto, item.codClassifFiscal->classificacaoFiscal AS ncm, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, item.dataEmissao FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (1,2) AND ISNUMERIC(item.codProduto)=1 AND item.dataEmissao>=DATE("2017-01-01")',
+        'qtdItem=VALUES(qtdItem)',
+      );
+      //ITEM NOTA FICAL DE ENTRADA
+      this.selectAndInput(
+        'itemNotaEntrada',
+        'SELECT item.id, item.codEmpresa, TO_NUMBER(item.numDocumento) AS numeroNota, TO_NUMBER(item.codMaterial) AS codItem, item.codMaterial->nome as nomeItem, item.valorTotalItem AS vlrItem, CAST((item.valorTotalItem/item.quantidade) AS NUMERIC(18,4)) AS vlrUnitarioItem, item.quantidade AS qtdItem, item.codMaterial->unidadeMedida AS unidMedida, 0 AS vlrDesconto, STRING(item.classificacaoFiscal) AS ncm, item.ValorCOFINS AS vlrCofins, item.valorICMS AS vlrIcms, item.valorPisPasepRec AS vlrPis, item.valorIPI AS vlrIpi, item.dataEntrada FROM est.NotaFiscalEntradaItens AS item WHERE item.codEmpresa IN (1,2) AND item.quantidade>=1 AND ISNUMERIC(item.codMaterial)=1 AND item.dataEntrada>=DATE("2017-01-01")',
+        'qtdItem=VALUES(qtdItem)',
       );
       console.log('Data processed successfully.');
     } catch (error) {
