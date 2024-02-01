@@ -3,7 +3,7 @@ import { DbService } from '../db/db.service';
 
 @Injectable()
 export class InvoicesService {
-  constructor(private readonly dbService: DbService) {}
+  constructor(private readonly db: DbService) {}
 
   async findOne(id: number, dateStart: string, dateEnd: string) {
     const company = [1, 2];
@@ -93,7 +93,7 @@ export class InvoicesService {
     JOIN Fat.CliComplemento3 AS cliente_complemento3 ON nota.Cliente=cliente_complemento3.ID
     WHERE mov.codNatureza1=8 AND nota.codEmpresa=1 AND mov.dataLcto>=DATE("2000-01-01")`;
 
-    const data = await this.dbService.query(sql);
+    const data = await this.db.cache(sql);
 
     return data;
 

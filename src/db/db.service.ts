@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import * as mysql from 'mysql2/promise';
 import * as odbc from 'odbc';
 
 @Injectable()
@@ -16,7 +17,7 @@ export class DbService {
 
   private readonly odbc_config = this.env.get<string>('API_ODBC_CONFIG');
 
-  async query(sql: string) {
+  async cache(sql: string) {
     try {
       const connection = await odbc.connect(this.odbc_config);
       const result = await connection.query(sql);
@@ -26,5 +27,11 @@ export class DbService {
       console.error(error);
       throw new InternalServerErrorException();
     }
+  }
+
+  async mysql(query, values) {
+    const connection = await mysql.createConnection(this.targetDbConfig);
+    await connection.query(query, values);
+    connection.end();
   }
 }

@@ -1,7 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import * as mysql from 'mysql2/promise';
 import { DbService } from '../db/db.service';
 
 @Injectable()
@@ -11,31 +10,24 @@ export class ExtractAndInsertService {
     private db: DbService,
   ) {}
 
-  private readonly targetDbConfig = {
-    host: this.env.get<string>('API_MYSQL_HOST'),
-    user: this.env.get<string>('API_MYSQL_USER'),
-    password: this.env.get<string>('API_MYSQL_PASS'),
-    database: this.env.get<string>('API_MYSQL_DATABASE'),
-  };
   async selectAndInput(tableInput: any, select: any, columnsUpdate: any) {
     try {
-      const rows = await this.db.query(select);
+      const rows = await this.db.cache(select);
+
       console.log('Consulta Empresa Realizada');
 
       const columns = Object.keys(rows[0]);
       const values = rows.map((row: any) =>
         columns.map((column) => row[column]),
       );
-      console.log(rows);
 
-      const connection = await mysql.createConnection(this.targetDbConfig);
-      await connection.query(
+      await this.db.mysql(
         `INSERT INTO ${tableInput} (${columns.join(
           ',',
         )}) VALUES ? ON DUPLICATE KEY UPDATE ${columnsUpdate}`,
         [values],
       );
-      connection.end();
+
       console.log('Insert/Update Empresa Realizado com sucesso');
     } catch (error) {
       console.error(error);
@@ -45,7 +37,7 @@ export class ExtractAndInsertService {
 
   async selectAndInputMov(tableInput: any, select: any) {
     try {
-      const rows = await this.db.query(select);
+      const rows = await this.db.cache(select);
       console.log('Consulta Empresa Realizada');
 
       const regex = new RegExp('^([A-Z]+)([0-9]+)');
@@ -70,12 +62,11 @@ export class ExtractAndInsertService {
         columns.map((column) => row[column]),
       );
 
-      const connection = await mysql.createConnection(this.targetDbConfig);
-      await connection.query(
+      await this.db.mysql(
         `REPLACE INTO ${tableInput} (${columns.join(',')}) VALUES ?`,
         [values],
       );
-      connection.end();
+
       console.log('REPLACE Empresa Realizado com sucesso');
     } catch (error) {
       console.error(error);
@@ -83,13 +74,13 @@ export class ExtractAndInsertService {
     }
   }
 
-  onModuleInit() {
-    this.selectAndInput(
-      'itemNotaSaida',
-      'SELECT item.id, item.codEmpresa, TO_NUMBER(item.numero) AS numeroNota, item.codProduto AS codItem, item.codProduto->nome as nomeItem, item.vlrItem AS vlrItem, item.precoUnitarioFloat AS vlrUnitarioItem, item.qtdeFaturada AS qtdItem, item.codProduto->unidadeMedida AS unidMedida, item.vlrDesconto, item.codClassifFiscal->classificacaoFiscal AS ncm, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, item.dataEmissao FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (1,2) AND ISNUMERIC(item.codProduto)=1 AND item.dataEmissao>=DATE("2017-01-01")',
-      'qtdItem=VALUES(qtdItem)',
-    );
-  }
+  // onModuleInit() {
+  //   this.selectAndInput(
+  //     'fornecedor',
+  //     'SELECT fornecedor.id AS id, fornecedor.codigo, fornecedor.codEmpresa, fornecedor.cnpjCpf AS cnpjCpf, fornecedor.inscEstadual, fornecedor.nome AS razaoSocial, COALESCE(fornecedor.fantasia, "") AS nomeFantasia, fornecedor.cep AS cep, fornecedor.endereco, fornecedor.nroEndereco AS numeroEndereco, fornecedor.bairro, fornecedor.nomeCidade AS cidade, fornecedor.siglaEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(fornecedor.telefone, fornecedor.telefone1) AS telefone, fornecedor.email, COALESCE(fornecedor.dataSituacao, DATE("2000-01-01")) AS dataRegistro FROM cpg.fornecedor AS fornecedor JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(fornecedor.cep,1,5) where codEmpresa!=99',
+  //     'telefone=VALUES(telefone), email=VALUES(email)',
+  //   );
+  // }
 
   @Cron(CronExpression.EVERY_HOUR)
   async processData(): Promise<void> {
