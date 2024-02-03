@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { DbService } from '../db/db.service';
 
 @Injectable()
@@ -62,12 +62,22 @@ export class ExtractAndInsertService {
           objeto.serieFiscal = 1;
         }
 
-        if (!match) {
-          throw new InternalServerErrorException('Erro no regex');
+        if (match) {
+          delete objeto.numDocto;
+          objeto.tipoNota = match[1];
+          objeto.numeroNota = match[2];
+        } else {
+          objeto.tipoNota = 'AA';
+          objeto.numeroNota = 123;
+          //throw new InternalServerErrorException('Erro no regex');
         }
-        delete objeto.numDocto;
-        objeto.tipoNota = match[1];
-        objeto.numeroNota = match[2];
+      });
+      rows.filter((a: any) => {
+        if (a.tipoNota in ['NF', 'NE', 'NFD']) {
+          return true;
+        } else {
+          return false;
+        }
       });
 
       const columns = Object.keys(rows[0]);
@@ -88,14 +98,16 @@ export class ExtractAndInsertService {
   }
 
   onModuleInit() {
-    //NOTA DE SAIDA
-    this.selectAndInput(
-      'notaSaida',
-      'SELECT nota.id, TO_NUMBER(nota.codPedido) AS codPedido, nota.codEmpresa, nota.numero, nota.codSerie, chave.chaveAcesso AS chave, nota.dataEmissao, nota.codCondVenda, nota.CondicaoDeVenda->descricao, nota.codTipoDeNota, %ODBCOUT(nota.codTipoDeNota->tipoFinalNfe+1) AS codTipoDeNota, %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS DescTipoDeNota, nota.situacao, nota.codNatOperacao, nota.Cliente AS idCliente, nota.codCliente, nota.codRepresentante, nota.Representante->nome AS nomeRepresentante, nota.Representante->cnpjcpf AS cnpjcpfRepresentante FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (1,2) AND nota.codTipoDeNota->tipoFinalNfe!="" AND chave.chaveAcesso!="" AND nota.dataEmissao>=DATE("2017-01-01")',
+    this.selectAndInputMov(
+      'movimentacao',
+      'select id AS id, numDocto, codEmpresa, codFornecNota AS codFornecedor, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12")',
     );
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron('0 7-19/2 * * 1-6', {
+    name: 'Atualização',
+    timeZone: 'America/Porto_Velho',
+  })
   async processData(): Promise<void> {
     try {
       //EMPRESA
@@ -121,6 +133,7 @@ export class ExtractAndInsertService {
         'notaSaida',
         'SELECT nota.id, TO_NUMBER(nota.codPedido) AS codPedido, nota.codEmpresa, nota.numero, nota.codSerie, chave.chaveAcesso AS chave, nota.dataEmissao, nota.codCondVenda, nota.CondicaoDeVenda->descricao, nota.codTipoDeNota, %ODBCOUT(nota.codTipoDeNota->tipoFinalNfe+1) AS codTipoDeNota, %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS DescTipoDeNota, nota.situacao, nota.codNatOperacao, nota.Cliente AS idCliente, nota.codCliente, nota.codRepresentante, nota.Representante->nome AS nomeRepresentante, nota.Representante->cnpjcpf AS cnpjcpfRepresentante FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (1,2) AND nota.codTipoDeNota->tipoFinalNfe!="" AND chave.chaveAcesso!="" AND nota.dataEmissao>=DATE("2017-01-01")',
       );
+
       //NOTA DE ENTRADA
       this.selectAndInput(
         'notaEntrada',
@@ -140,7 +153,7 @@ export class ExtractAndInsertService {
       //MOVIMENTACAO DE ESTOQUE
       this.selectAndInputMov(
         'movimentacao',
-        'select id AS id, numDocto, codEmpresa, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND tipoPpcp NOT IN (90,91,5) AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12")',
+        'select id AS id, numDocto, codEmpresa, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12")',
       );
       console.log('Data processed successfully.');
     } catch (error) {
