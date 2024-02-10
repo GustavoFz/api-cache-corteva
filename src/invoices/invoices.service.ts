@@ -45,9 +45,9 @@ export class InvoicesService {
         NULL AS cota_ven,
         nota.cfop oper_ven,
         nota.cfop AS cfop_ven,
-        "situacao nota" AS stat_ven,
+        IF(nota.situacao=2, "C", "A") AS stat_ven,
         cliente.cnpjCpf AS dest_ven,
-        nota.descTipoDeNota AS desc_opr,
+        nota.descricao AS desc_opr,
         IF(mov.operacao=0, "S", "E") AS sina_opr,
         nota.codCliente AS codi_cli,
         item.codItem AS codi_pro,
@@ -74,9 +74,9 @@ export class InvoicesService {
             movimentacao.codEmpresa = nota.codEmpresa AND movimentacao.numeroNota = nota.numero AND movimentacao.serieFiscal = nota.codSerie
     ), DECIMAL(18,4)) AS pliq_ivn,
     item.qtdItem AS qtde_ivn,
-    nota.codRepresentante AS codi_ved,
-    nota.nomeRepresentante AS nome_ved,
-    nota.cnpjcpfRepresentante AS cpfc_ved,
+    null AS codi_ved,
+    null AS nome_ved,
+    null AS cpfc_ved,
     NULL AS enco_ivn,
     NULL AS nume_ivn,
     NULL AS bair_ivn,
@@ -96,7 +96,7 @@ export class InvoicesService {
     NULL AS tel2_cli,
     NULL AS celu_cli,
     cliente.email AS email_cli,
-    cliente.situacao AS duma_cli,
+    DATE_FORMAT(cliente.dataRegistro, "%Y-%m-%d") AS duma_cli,
     NULL AS dnac_cli
     FROM
         movimentacao AS mov
@@ -143,9 +143,9 @@ export class InvoicesService {
         NULL AS cota_ven,
         nota.cfop oper_ven,
         nota.cfop AS cfop_ven,
-        "situacao nota" AS stat_ven,
+        "A" AS stat_ven,
         fornecedor.cnpjCpf AS dest_ven,
-        nota.descTipoDeNota AS desc_opr,
+        item.cfopDescricao AS desc_opr,
         IF(mov.operacao=0, "S", "E") AS sina_opr,
         nota.codFornecedor AS codi_cli,
         item.codItem AS codi_pro,
@@ -172,9 +172,9 @@ export class InvoicesService {
             movimentacao.codEmpresa = nota.codEmpresa AND movimentacao.numeroNota = nota.numero AND movimentacao.serieFiscal = nota.codSerie AND movimentacao.codFornecedor=nota.codFornecedor
     ), DECIMAL(18,4)) AS pliq_ivn,
     item.qtdItem AS qtde_ivn,
-    "sem controle de representante" AS codi_ved,
-    "sem controle de representante" AS nome_ved,
-    "sem controle de representante" AS cpfc_ved,
+    null AS codi_ved,
+    null AS nome_ved,
+    null AS cpfc_ved,
     NULL AS enco_ivn,
     NULL AS nume_ivn,
     NULL AS bair_ivn,
@@ -194,7 +194,7 @@ export class InvoicesService {
     NULL AS tel2_cli,
     NULL AS celu_cli,
     empresa.email AS email_cli,
-    empresa.situacao AS duma_cli,
+    DATE_FORMAT(empresa.dataRegistro, "%Y-%m-%d") AS duma_cli,
     NULL AS dnac_cli
     FROM
         movimentacao AS mov
