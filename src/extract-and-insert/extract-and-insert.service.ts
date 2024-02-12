@@ -39,7 +39,7 @@ export class ExtractAndInsertService {
       );
 
       await this.db.mysql(
-        `INSERT IGNORE INTO ${tableInput} (${columns.join(',')}) VALUES ?`,
+        `REPLACE INTO ${tableInput} (${columns.join(',')}) VALUES ?`,
         [values],
       );
       console.log(`Inserção realizada com sucesso na tabela ${tableInput}`);
@@ -57,39 +57,58 @@ export class ExtractAndInsertService {
         'Acapela',
         'Accent',
         'Aproach',
+        'Arigo',
+        'Bim',
         'Bim Max',
+        'BlueN',
+        'Boavin',
+        'Broadway',
+        'Citadel',
         'Classic',
         'Clincher',
         'Closer',
         'Coact',
+        'Contrast',
         'Curathane',
         'Curavial',
         'Curzate',
-        'DMA',
         'Delegate',
         'Dermacor',
         'DisparoUltra',
         'Dithane',
+        'DMA',
         'Dominum',
         'Dontor',
+        'Dorian',
+        'Emperor',
         'Enlist',
         'Equation',
         'Exalt',
         'Expedition',
+        'Ferpi',
+        'Fontelis',
         'Fore',
         'Front',
+        'Galavio',
+        'Gallery',
         'Garlon',
+        'Gartrel',
         'Glizmax',
         'Goal',
+        'Hector',
         'Inlayon',
+        'Instinct',
         'Intrepid',
         'Jaguar',
+        'Karathane Star',
+        'Kerb Flo',
         'Kocide',
         'Lannate',
         'Loyant',
         'Lumialza',
         'Midas',
         'Missil',
+        'Mustang',
         'Omsugo',
         'Oranis',
         'Outliner',
@@ -98,8 +117,11 @@ export class ExtractAndInsertService {
         'PalaceUltra',
         'Panoramic',
         'Paxeo',
+        'Pixxaro',
         'PlanadorXT',
         'Pulsor',
+        'Quelex',
+        'Radiant',
         'Raster',
         'Relicta',
         'Revolux',
@@ -109,11 +131,15 @@ export class ExtractAndInsertService {
         'Sector',
         'Spider',
         'Spindle',
+        'Spintor',
         'Stopper',
         'StopperXT',
         'Success',
-        'Talento',
+        'Sullica',
+        'Talendo',
         'Tezpetix',
+        'Titus',
+        'Torcha',
         'Tordon',
         'Tracer',
         'Tricea',
@@ -125,6 +151,7 @@ export class ExtractAndInsertService {
         'Verter',
         'Vessarya',
         'Viovan',
+        'Vivolt',
         'Volcane',
         'Zorvec',
       ];
@@ -231,29 +258,29 @@ export class ExtractAndInsertService {
       //NOTA DE SAIDA
       await this.selectAndInput(
         'notaSaida',
-        'SELECT nota.id, TO_NUMBER(nota.codPedido) AS codPedido, nota.codEmpresa, nota.numero, nota.codSerie, nota.codTipoDeNota->descricao AS descricao, chave.chaveAcesso AS chave, nota.dataEmissao, nota.codCondVenda, nota.CondicaoDeVenda->descricao AS condVebdaDescricao, nota.codTipoDeNota, %ODBCOUT(nota.codTipoDeNota->tipoFinalNfe+1) AS codTipoDeNota, %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS descTipoDeNota, nota.situacao, nota.codNatOperacao AS cfop, nota.Cliente AS idCliente, nota.codCliente, nota.codRepresentante, nota.Representante->nome AS nomeRepresentante, nota.Representante->cnpjcpf AS cnpjcpfRepresentante FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (1,2) AND nota.codTipoDeNota->tipoFinalNfe!="" AND chave.chaveAcesso!="" AND nota.dataEmissao>=DATE("2017-01-01")',
+        'SELECT nota.id, TO_NUMBER(nota.codPedido) AS codPedido, nota.codEmpresa, nota.numero AS numero, nota.codSerie, nota.codTipoDeNota->descricao AS descricao, chave.chaveAcesso AS chave, nota.dataEmissao, nota.codCondVenda, nota.CondicaoDeVenda->descricao AS condVendaDescricao, nota.codTipoDeNota AS idTipoNota, %ODBCOUT(nota.codTipoDeNota->tipoFinalNfe+1) AS codTipoNota, %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS descTipoNota, nota.situacao, nota.codNatOperacao AS cfop, nota.Cliente AS idCliente, nota.codCliente, nota.codRepresentante, nota.Representante->nome AS nomeRepresentante, nota.Representante->cnpjcpf AS cnpjcpfRepresentante FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (1,2) AND nota.codTipoDeNota!=1',
       );
 
       //NOTA DE ENTRADA
       await this.selectAndInput(
         'notaEntrada',
-        'SELECT nota.id, nota.codEmpresa, TO_NUMBER(nota.numDocumento) AS numero, nota.codSerie, nota.naturezaOperacao->nome AS descricao, nota.dataEmissao, nota.dataEntrada, nota.condPgto AS condPagamento, %ODBCOUT(nota.especieDocumento) AS codTipoDeNota, %EXTERNAL(nota.especieDocumento) AS descTipoDeNota, STRING(nota.codEmpresa, "||", nota.fornecedor) AS idFornecedor, nota.fornecedor AS codFornecedor, naturezaOperacao AS cfop, STRING(chave.chavenfe) AS chave FROM est.notafiscalentrada AS nota JOIN est.NotaFiscalEntradaChavElet AS chave ON nota.codEmpresa=chave.codEmpresa AND nota.numDocumento=chave.numDocumento AND nota.codSerie=chave.codSerie AND nota.fornecedor=chave.fornecedor WHERE nota.codEmpresa IN (1,2) AND nota.dataEmissao>=DATE("2017-01-01")',
+        'SELECT nota.id, nota.codEmpresa, TO_NUMBER(nota.numDocumento) AS numero, nota.codSerie, nota.naturezaOperacao->nome AS descricao, nota.dataEmissao, nota.dataEntrada, nota.condPgto AS condPagamento, %ODBCOUT(nota.especieDocumento) AS codTipoDeNota, %EXTERNAL(nota.especieDocumento) AS descTipoDeNota, STRING(nota.codEmpresa, "||", nota.fornecedor) AS idFornecedor, nota.fornecedor AS codFornecedor, naturezaOperacao AS cfop, STRING(chave.chavenfe) AS chave FROM est.notafiscalentrada AS nota JOIN est.NotaFiscalEntradaChavElet AS chave ON nota.codEmpresa=chave.codEmpresa AND nota.numDocumento=chave.numDocumento AND nota.codSerie=chave.codSerie AND nota.fornecedor=chave.fornecedor WHERE nota.codEmpresa IN (1,2) AND nota.dataEmissao>=DATE("2022-01-01")',
       );
 
       //ITEM NOTA FISCAL DE SAIDA
       await this.selectAndInputItem(
         'itemNotaSaida',
-        'SELECT item.id, item.codEmpresa, TO_NUMBER(item.numero) AS numeroNota, item.codProduto AS codItem, item.codProduto->nome as nomeItem, item.vlrItem AS vlrItem, item.precoUnitarioFloat AS vlrUnitarioItem, item.qtdeFaturada AS qtdItem, item.codProduto->unidadeMedida AS unidMedida, item.vlrDesconto, item.codClassifFiscal->classificacaoFiscal AS ncm, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, item.dataEmissao FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (1,2) AND ISNUMERIC(item.codProduto)=1 AND item.dataEmissao>=DATE("2017-01-01")',
+        'SELECT item.id, item.codEmpresa, TO_NUMBER(item.numero) AS numeroNota, item.codProduto AS codItem, item.codProduto->nome as nomeItem, item.vlrItem AS vlrItem, item.precoUnitarioFloat AS vlrUnitarioItem, item.qtdeFaturada AS qtdItem, item.codProduto->unidadeMedida AS unidMedida, item.vlrDesconto, item.codClassifFiscal->classificacaoFiscal AS ncm, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, item.dataEmissao FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (1,2) AND ISNUMERIC(item.codProduto)=1 AND item.dataEmissao>=DATE("2022-01-01")',
       );
       //ITEM NOTA FICAL DE ENTRADA
       await this.selectAndInputItem(
         'itemNotaEntrada',
-        'SELECT item.id, item.codEmpresa, item.codFornecedor, TO_NUMBER(item.numDocumento) AS numeroNota, item.codSerie AS serieNota, TO_NUMBER(item.codMaterial) AS codItem, item.codMaterial->nome as nomeItem, item.custoEntrada AS vlrEntrada, item.valorTotalItem AS vlrItem, CAST((item.valorTotalItem/item.quantidade) AS NUMERIC(18,4)) AS vlrUnitarioItem, item.quantidade AS qtdItem, item.codMaterial->unidadeMedida AS unidMedida, 0 AS vlrDesconto, STRING(item.classificacaoFiscal) AS ncm, item.naturezaOperacao AS cfop, item.naturezaOperacao->nome AS cfopDescricao, item.ValorCOFINS AS vlrCofins, item.valorICMS AS vlrIcms, item.valorPisPasepRec AS vlrPis, item.valorIPI AS vlrIpi, item.dataEntrada FROM est.NotaFiscalEntradaItens AS item WHERE item.codEmpresa IN (1,2) AND item.quantidade>=1 AND ISNUMERIC(item.codMaterial)=1 AND item.dataEntrada>=DATE("2017-01-01")',
+        'SELECT item.id, item.codEmpresa, item.codFornecedor, TO_NUMBER(item.numDocumento) AS numeroNota, item.codSerie AS serieNota, TO_NUMBER(item.codMaterial) AS codItem, item.codMaterial->nome as nomeItem, item.custoEntrada AS vlrCustoEntrada, item.valorTotalItem AS vlrItem, CAST((item.valorTotalItem/item.quantidade) AS NUMERIC(18,4)) AS vlrUnitarioItem, item.percItemRepresSNota AS percItemNota, item.quantidade AS qtdItem, item.codMaterial->unidadeMedida AS unidMedida, 0 AS vlrDesconto, STRING(item.classificacaoFiscal) AS ncm, item.naturezaOperacao AS cfop, item.naturezaOperacao->nome AS cfopDescricao, item.ValorCOFINS AS vlrCofins, item.valorICMS AS vlrIcms, item.valorPisPasepRec AS vlrPis, item.valorIPI AS vlrIpi, item.dataEntrada FROM est.NotaFiscalEntradaItens AS item WHERE item.codEmpresa IN (1,2) AND item.quantidade>=1 AND ISNUMERIC(item.codMaterial)=1 AND item.dataEntrada>=DATE("2022-01-01")',
       );
       //MOVIMENTACAO DE ESTOQUE
       await this.selectAndInputMov(
         'movimentacao',
-        'select id AS id, numDocto, codEmpresa, codFornecNota AS codFornecedor, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12")',
+        'select id AS id, numDocto, codEmpresa, codFornecNota AS codFornecedor, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12") AND dataLcto>=DATE("2022-01-01")',
       );
       console.log('Data processed successfully.');
     } catch (error) {
