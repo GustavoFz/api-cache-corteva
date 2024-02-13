@@ -1,40 +1,21 @@
-import { HttpService } from '@nestjs/axios';
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
+import { Injectable } from '@nestjs/common';
+import { DbService } from '../db/db.service';
 
 @Injectable()
 export class CustomersService {
-  constructor(
-    private readonly httpService: HttpService,
-    private env: ConfigService,
-  ) {}
-
-  url = this.env.get<string>('API_DB_URL');
+  constructor(private db: DbService) {}
 
   async findOne(id: number) {
     const company = [1, 2];
 
     if (!company.includes(id)) {
-      throw new NotFoundException();
+      id = 0;
     }
 
-    const data = {
-      query: `SELECT STRING(cli.codEmpresa) as codi_rev, STRING(cli.codCliente) as codi_cli, cli.CNPJCPF as cnpj_cli, cli.inscEstadual as insc_cli, cli.nome as nome_cli, cli.endereco as enco_cli, cli.enderecoNumero as nume_cli, cli.bairro as bair_cli, cli.endComplementar as comp_cli,cli.cep as cepc_cli, STRING((SELECT codIBGE FROM Cad.Cidade WHERE codCEP=SUBSTRING(cli.cep,1,5))) as muni_cli, compl.telefone as tele_cli, compl.telefoneCobranca as tel2_cli, compl.telexCelular as celu_cli, cli.email as emai_cli, null as duma_cli, null as dnac_cli FROM fat.cliente cli INNER JOIN fat.CliComplemento2 compl ON cli.codCliente=compl.codCliente WHERE cli.codEmpresa=${id} AND cli.codCliente in (SELECT codCliente FROM ped.pedido WHERE codEmpresa=${id} AND situacao in (0,1,5) AND nomeOper='Gerado via portal do produtor' GROUP BY codCliente)`,
-    };
-    // "SELECT codPedido, codEmpresa, codRepresentante, procedencia, codTipoNota, dataDigitacao, dataEmissao, dataPrevFat, dataFaturamento, fatParcial, nomeOper, numNotaFiscal, pedProntEnt, situacao, qtdeItens, qtdPecasPedido, qtdPecasFaturadas FROM Ped.Pedido WHERE codEmpresa=1 AND situacao in (0,1,5) AND nomeOper='Gerado via portal do produtor'"
-    const response = await firstValueFrom(
-      this.httpService.post(this.url, data),
-    );
+    //idTipoNota=61 é referente as notas emitidas pelo portal do produtor
 
-    const clientes = response.data.result.content;
-    return clientes.map((cliente) => {
-      for (const prop in cliente) {
-        if (cliente[prop] == '') {
-          cliente[prop] = null;
-        }
-      }
-      return cliente;
-    });
+    const select = `SELECT codEmpresa AS codi_rev, codCliente AS codi_cli, cnpjCpf AS cnpj_cli, inscEstadual AS insc_cli, razaoSocial AS nome_cli, endereco AS enco_cli, numeroEndereco AS nume_cli, bairro AS bair_cli, null AS comp_cli, cep AS cepc_cli, codigoIbge AS muni_cli, telefone AS tele_cli, null AS tel2_cli, null AS celu_cli, email AS emai_cli, DATE_FORMAT(dataRegistro, "%Y-%m-%d") AS duma_cli, null AS dnac_cli FROM cliente WHERE codEmpresa=${id} AND codCliente in (SELECT codCliente FROM notaSaida WHERE codEmpresa=${id} AND idTipoNota=61 GROUP BY codCliente)`;
+
+    return await this.db.mysqlSelect(select);
   }
 }
