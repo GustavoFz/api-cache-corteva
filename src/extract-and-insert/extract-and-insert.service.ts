@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { DbService } from '../db/db.service';
 
 @Injectable()
@@ -231,7 +231,10 @@ export class ExtractAndInsertService {
   //   this.processData();
   // }
 
-  @Cron('0 7-19/2 * * 1-6', {
+  // Cron de Segunda a Sabado entre as 7h e 19h a cada 2 horas
+  // '0 7-19/2 * * 1-6'
+
+  @Cron(CronExpression.EVERY_DAY_AT_9PM, {
     name: 'Atualização',
     timeZone: 'America/Porto_Velho',
   })
@@ -240,7 +243,7 @@ export class ExtractAndInsertService {
       //EMPRESA
       await this.selectAndInputUpdate(
         'empresa',
-        'SELECT empresa.id AS id, empresa.cnpjCpf AS cnpjCpf, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5)',
+        'SELECT empresa.id AS id, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5)',
         'telefone=VALUES(telefone), email=VALUES(email), situacao=VALUES(situacao)',
       );
       //CLIENTE
