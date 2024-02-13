@@ -1,20 +1,13 @@
-import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
+import { DbService } from '../db/db.service';
 
 @Injectable()
 export class StocksService {
-  constructor(
-    private readonly httpService: HttpService,
-    private env: ConfigService,
-  ) {}
-
-  url = this.env.get<string>('API_DB_URL');
+  constructor(private db: DbService) {}
 
   async findOne(id: number, dateStart: string, dateEnd: string) {
     const company = [1, 2];
@@ -35,26 +28,10 @@ export class StocksService {
       throw new BadRequestException();
     }
     // Naturaza 8 Produtos revenda
-    // Usar os metodos abaixo para alterar a saida dos dados
-    // %EXTERNAL %INTERNAL %ODBCOUT
-    // exemplos TO_CHAR(dataLcto,'YYYY-MM-DD') e %ODBCOUT(dataLcto)
+    // Caso esteja usando MySql Version 5.7.5 ou superior, desabilitar ONLY_FULL_GROUP_BY
 
-    const data = {
-      query: `SELECT codEmpresa as codi_rev, null as codi_fab, codItem as codi_pro, codItem->classificacaoFiscal->classificacaoFiscal as ncmp_pro, codItem->nome as desc_pro, codItem->unidadeMedida as unid_pro, null as barr_pro, null as cind_pro, %ODBCOUT(dataLcto) as date_pro, null as lote_pro, +GREATEST(COALESCE(SUM(CASE WHEN operacao1='+' THEN qtdMovto ELSE -qtdMovto END), 0), 0) as qtde_pro, +GREATEST(COALESCE(SUM(CASE WHEN operacao1='+' THEN qtdMovto ELSE -qtdMovto END), 0), 0) as qtdi_pro, +0 as qttr_pro, +0 as qtbl_pro, null as trat_pro, CASE WHEN codItem->classificacaoFiscal->classificacaoFiscal LIKE '12%' THEN 'S' ELSE 'D' END as fsem_pro FROM Est.Movimento WHERE codItem in (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12") AND codItem->origem != 'Fabricação Própria' AND codEmpresa=${id} AND dataLcto>=DATE("${dateStart}") AND dataLcto<=DATE("${dateEnd}") AND codNatureza1 = 8 GROUP BY codItem ORDER BY dataLcto DESC`,
-    };
-    const response = await firstValueFrom(
-      this.httpService.post(this.url, data),
-    );
+    const select = `SELECT codEmpresa AS codi_rev, marcaItem AS codi_fab, codItem AS codi_pro, ncm AS ncmp_pro, nomeItem AS desc_pro, uniMedidaItem AS unid_pro, null AS barr_pro, null AS cind_pro, DATE_FORMAT(dataLancamento, "%Y-%m-%d") AS date_pro, null AS lote_pro, GREATEST(SUM(CASE WHEN operacao = 0 THEN -qtdItem ELSE qtdItem END), 0, 0) AS qtde_prod, GREATEST(SUM(CASE WHEN operacao = 0 THEN -qtdItem ELSE qtdItem END), 0, 0) AS qtdi_pro, 0 AS qttr_pro, 0 AS qtbl_pro, null AS trat_pro, IF(nomeItem LIKE 'SEM%', 'S', 'D') AS fsem_pro FROM movimentacao WHERE codEmpresa=${id} AND dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" GROUP BY codItem ORDER BY datalancamento DESC`;
 
-    const produtos = response.data.result.content;
-    //TROCA CAMPOS VAZIOS POR NULL
-    return produtos.map((produto) => {
-      for (const prop in produto) {
-        if (produto[prop] === '') {
-          produto[prop] = null;
-        }
-      }
-      return produto;
-    });
+    return this.db.mysqlSelect(select);
   }
 }

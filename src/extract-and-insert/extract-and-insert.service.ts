@@ -165,6 +165,108 @@ export class ExtractAndInsertService {
   }
   async selectAndInputMov(tableInput: any, select: any) {
     try {
+      const produtosCorteva = [
+        'Acapela',
+        'Accent',
+        'Aproach',
+        'Arigo',
+        'Bim',
+        'Bim Max',
+        'BlueN',
+        'Boavin',
+        'Broadway',
+        'Citadel',
+        'Classic',
+        'Clincher',
+        'Closer',
+        'Coact',
+        'Contrast',
+        'Curathane',
+        'Curavial',
+        'Curzate',
+        'Delegate',
+        'Dermacor',
+        'DisparoUltra',
+        'Dithane',
+        'DMA',
+        'Dominum',
+        'Dontor',
+        'Dorian',
+        'Emperor',
+        'Enlist',
+        'Equation',
+        'Exalt',
+        'Expedition',
+        'Ferpi',
+        'Fontelis',
+        'Fore',
+        'Front',
+        'Galavio',
+        'Gallery',
+        'Garlon',
+        'Gartrel',
+        'Glizmax',
+        'Goal',
+        'Hector',
+        'Inlayon',
+        'Instinct',
+        'Intrepid',
+        'Jaguar',
+        'Karathane Star',
+        'Kerb Flo',
+        'Kocide',
+        'Lannate',
+        'Loyant',
+        'Lumialza',
+        'Midas',
+        'Missil',
+        'Mustang',
+        'Omsugo',
+        'Oranis',
+        'Outliner',
+        'Pacto',
+        'Padron',
+        'PalaceUltra',
+        'Panoramic',
+        'Paxeo',
+        'Pixxaro',
+        'PlanadorXT',
+        'Pulsor',
+        'Quelex',
+        'Radiant',
+        'Raster',
+        'Relicta',
+        'Revolux',
+        'Ricer',
+        'Savey',
+        'Scorpion',
+        'Sector',
+        'Spider',
+        'Spindle',
+        'Spintor',
+        'Stopper',
+        'StopperXT',
+        'Success',
+        'Sullica',
+        'Talendo',
+        'Tezpetix',
+        'Titus',
+        'Torcha',
+        'Tordon',
+        'Tracer',
+        'Tricea',
+        'TronadorUltra',
+        'Trueno',
+        'Truper',
+        'Utrisha',
+        'Verdict',
+        'Verter',
+        'Vessarya',
+        'Viovan',
+        'Vivolt',
+        'Volcane',
+        'Zorvec',
+      ];
       const rows = await this.db.cache(select);
       console.log(`Consulta realizada com sucesso na tabela ${tableInput}`);
 
@@ -185,6 +287,17 @@ export class ExtractAndInsertService {
           objeto.tipoNota = 'AAAAAA';
           objeto.numeroNota = 1111111;
           //throw new InternalServerErrorException('Erro no regex');
+        }
+        objeto.marcaItem = null;
+
+        for (let i = 0; i < produtosCorteva.length; i++) {
+          const regex = new RegExp(`${produtosCorteva[i]}`, 'mi');
+          const marca = regex.test(objeto.nomeItem);
+
+          if (marca) {
+            objeto.marcaItem = 'CORTEVA';
+            break;
+          }
         }
       });
 
@@ -263,7 +376,7 @@ export class ExtractAndInsertService {
       //MOVIMENTACAO DE ESTOQUE
       await this.selectAndInputMov(
         'movimentacao',
-        'select id AS id, numDocto, codEmpresa, codFornecNota AS codFornecedor, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12") AND dataLcto>=DATE("2022-01-01")',
+        'select id AS id, numDocto, codEmpresa, codFornecNota AS codFornecedor, codItem, codItem->nome AS nomeItem, codItem->classificacaoFiscal->classificacaoFiscal AS ncm, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, codUnidEstoque AS uniMedidaItem, serieFiscal from est.movimento where codNatureza1=8 AND codItem IN (SELECT codItem FROM Cgi.MascSaida WHERE {fn LEFT(mascara,2)}="12") AND dataLcto>=DATE("2018-01-01")',
       );
       console.log('Data processed successfully.');
     } catch (error) {
