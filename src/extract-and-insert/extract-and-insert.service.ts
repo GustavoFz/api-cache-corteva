@@ -6,28 +6,6 @@ import { DbService } from '../db/db.service';
 export class ExtractAndInsertService {
   constructor(private db: DbService) {}
 
-  async selectAndInputUpdate(tableInput: any, select: any, columnsUpdate: any) {
-    try {
-      const rows = await this.db.cache(select);
-      console.log(`Consulta realizada com sucesso na tabela ${tableInput}`);
-
-      const columns = Object.keys(rows[0]);
-      const values = rows.map((row: any) =>
-        columns.map((column) => row[column]),
-      );
-
-      await this.db.mysql(
-        `INSERT INTO ${tableInput} (${columns.join(
-          ',',
-        )}) VALUES ? ON DUPLICATE KEY UPDATE ${columnsUpdate}`,
-        [values],
-      );
-      console.log(`Inserção realizada com sucesso na tabela ${tableInput}`);
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException();
-    }
-  }
   async selectAndInput(tableInput: any, select: any) {
     try {
       const rows = await this.db.cache(select);
@@ -241,27 +219,24 @@ export class ExtractAndInsertService {
   async processData(): Promise<void> {
     try {
       //EMPRESA
-      await this.selectAndInputUpdate(
+      await this.selectAndInput(
         'empresa',
         'SELECT empresa.id AS id, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5)',
-        'telefone=VALUES(telefone), email=VALUES(email), situacao=VALUES(situacao)',
       );
       //CLIENTE
-      await this.selectAndInputUpdate(
+      await this.selectAndInput(
         'cliente',
         'SELECT cliente.id AS id, cliente.codCliente, cliente.codEmpresa, cliente.cnpjCpf AS cnpjCpf, cliente.inscEstadual AS inscEstadual, cliente.nome AS razaoSocial, COALESCE(cliente.fantasia, "") AS nomeFantasia, cliente.cep AS cep, cliente.endereco, %EXTERNAL(cliente.enderecoNumero) AS numeroEndereco, cliente.bairro, cliente.nomeCidade AS cidade, cliente.nomeEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(compl.telefone, compl.telexCelular, compl.fax) AS telefone, cliente.email AS email, %ODBCOUT(COALESCE(cliente.dataAlterSituacao, compl2.dataAlter)) AS dataRegistro, (CASE wHEN cliente.situacao=1 THEN 1 ELSE 0 END) AS situacao FROM fat.cliente AS cliente JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(cliente.cep,1,5) JOIN Fat.CliComplemento2 AS compl ON cliente.ID=compl.ID JOIN Fat.CliComplemento3 AS compl2 ON cliente.id=compl2.ID',
-        'telefone=VALUES(telefone), email=VALUES(email), situacao=VALUES(situacao)',
       );
       //FORNECEDOR
-      await this.selectAndInputUpdate(
+      await this.selectAndInput(
         'fornecedor',
         'SELECT fornecedor.id AS id, fornecedor.codigo, fornecedor.codEmpresa, fornecedor.cnpjCpf AS cnpjCpf, fornecedor.inscEstadual, fornecedor.nome AS razaoSocial, COALESCE(fornecedor.fantasia, "") AS nomeFantasia, fornecedor.cep AS cep, fornecedor.endereco, fornecedor.nroEndereco AS numeroEndereco, fornecedor.bairro, fornecedor.nomeCidade AS cidade, fornecedor.siglaEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(fornecedor.telefone, fornecedor.telefone1) AS telefone, fornecedor.email, COALESCE(fornecedor.dataSituacao, DATE("2000-01-01")) AS dataRegistro FROM cpg.fornecedor AS fornecedor JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(fornecedor.cep,1,5) where codEmpresa!=99',
-        'telefone=VALUES(telefone), email=VALUES(email)',
       );
       //NOTA DE SAIDA
       await this.selectAndInput(
         'notaSaida',
-        'SELECT nota.id, TO_NUMBER(nota.codPedido) AS codPedido, nota.codEmpresa, nota.numero AS numero, nota.codSerie, nota.codTipoDeNota->descricao AS descricao, chave.chaveAcesso AS chave, nota.dataEmissao, nota.codCondVenda, nota.CondicaoDeVenda->descricao AS condVendaDescricao, nota.codTipoDeNota AS idTipoNota, %ODBCOUT(nota.codTipoDeNota->tipoFinalNfe+1) AS codTipoNota, %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS descTipoNota, nota.situacao, nota.codNatOperacao AS cfop, nota.Cliente AS idCliente, nota.codCliente, nota.codRepresentante, nota.Representante->nome AS nomeRepresentante, nota.Representante->cnpjcpf AS cnpjcpfRepresentante FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (1,2) AND nota.codTipoDeNota!=1',
+        'SELECT nota.id, TO_NUMBER(nota.codPedido) AS codPedido, nota.codEmpresa, nota.numero AS numero, nota.codSerie, nota.codTipoDeNota->descricao AS descricao, chave.chaveAcesso AS chave, nota.dataEmissao, nota.codCondVenda, nota.CondicaoDeVenda->descricao AS condVendaDescricao, nota.codTipoDeNota AS idTipoNota, %ODBCOUT(nota.codTipoDeNota->tipoFinalNfe+1) AS codTipoNota, %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS descTipoNota, nota.situacao, nota.codNatOperacao AS cfop, nota.Cliente AS idCliente, nota.codCliente, nota.codRepresentante, nota.Representante->nome AS nomeRepresentante, nota.Representante->cnpjcpf AS cnpjcpfRepresentante FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (1,2) AND nota.codTipoDeNota!=1 AND nota.dataEmissao>=DATE("2022-01-01")',
       );
 
       //NOTA DE ENTRADA
