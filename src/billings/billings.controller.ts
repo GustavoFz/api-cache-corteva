@@ -6,7 +6,11 @@ export class BillingsController {
   constructor(private readonly billingsService: BillingsService) {}
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.billingsService.findOne(+id);
+  findOne(
+    @Param('id') id: string,
+    @Param('dateStart') dateStart: string,
+    @Param('dateEnd') dateEnd: string,
+  ) {
+    return this.billingsService.findOne(+id, dateStart, dateEnd);
   }
 }
