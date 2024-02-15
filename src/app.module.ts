@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { RouterModule } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { BillingsModule } from './billings/billings.module';
@@ -14,6 +15,7 @@ import { StocksModule } from './stocks/stocks.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     StocksModule,
     DbModule,
     InvoicesModule,

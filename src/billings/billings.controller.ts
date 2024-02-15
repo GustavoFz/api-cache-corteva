@@ -5,8 +5,12 @@ import { BillingsService } from './billings.service';
 export class BillingsController {
   constructor(private readonly billingsService: BillingsService) {}
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.billingsService.findOne(+id);
+  @Get(':id/:dateStart/:dateEnd')
+  findOne(
+    @Param('id') id: string,
+    @Param('dateStart') dateStart: string,
+    @Param('dateEnd') dateEnd: string,
+  ) {
+    return this.billingsService.findOne(+id, dateStart, dateEnd);
   }
 }

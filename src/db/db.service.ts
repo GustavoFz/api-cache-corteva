@@ -34,4 +34,11 @@ export class DbService {
     await connection.query(query, values);
     connection.end();
   }
+
+  async mysqlSelect(query) {
+    const connection = await mysql.createConnection(this.targetDbConfig);
+    const [results] = await connection.query(query);
+    connection.end();
+    return results;
+  }
 }
