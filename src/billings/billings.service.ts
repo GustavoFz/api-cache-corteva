@@ -30,7 +30,36 @@ export class BillingsService {
     // Naturaza 8 Produtos revenda
     // Caso esteja usando MySql Version 5.7.5 ou superior, desabilitar ONLY_FULL_GROUP_BY
 
-    const select = `SELECT codEmpresa AS codi_rev, YEAR(dataLancamento) AS ano_ven, MONTH(dataLancamento) AS mes_ven, "" AS modl_ven, id AS oper_ven, uniMedidaItem AS unid_pro, null AS barr_pro, null AS cind_pro, DATE_FORMAT(dataLancamento, "%Y-%m-%d") AS date_pro, null AS lote_pro, GREATEST(SUM(CASE WHEN operacao = 0 THEN -qtdItem ELSE qtdItem END), 0, 0) AS qtde_prod, GREATEST(SUM(CASE WHEN operacao = 0 THEN -qtdItem ELSE qtdItem END), 0, 0) AS qtdi_pro, 0 AS qttr_pro, 0 AS qtbl_pro, null AS trat_pro, IF(nomeItem LIKE 'SEM%', 'S', 'D') AS fsem_pro FROM movimentacao WHERE codEmpresa=${id} AND dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" GROUP BY codItem ORDER BY datalancamento DESC`;
+    const select = `
+    SELECT 
+      mov.codEmpresa AS codi_rev, 
+      YEAR(mov.dataLancamento) AS ano_ven, 
+      MONTH(mov.dataLancamento) AS mes_ven, 
+      "55" AS modl_ven, 
+      nota.id AS oper_ven, 
+      item.cfop AS cfop_ven, 
+      nat.nome AS desc_oper, 
+      mov.ncm AS ncmp_pro, 
+      IF(mov.operacao=0, "S", "E") AS sina_opr, 
+      SUM(CASE WHEN nota.codEmitente IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.idDestinatario IN (1,2) THEN item.vlrTotal WHEN nota.idEmitente IN (1,2) AND nota.codDestinatario IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN item.vlrTotal ELSE 0 END) AS valf_ven, 
+      SUM(CASE WHEN nota.codEmitente IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.idDestinatario IN (1,2) THEN item.qtd WHEN nota.idEmitente IN (1,2) AND nota.codDestinatario IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN item.qtd ELSE 0 END) AS volf_ven,
+      SUM(CASE WHEN nota.codEmitente NOT IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.codDestinatario NOT IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN item.vlrTotal ELSE 0 END) AS volu_ven,
+      SUM(CASE WHEN nota.codEmitente NOT IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.codDestinatario NOT IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN item.qtd ELSE 0 END) AS volr_ven      
+    FROM 
+      movimentacao AS mov
+    JOIN 
+      notaFiscal AS nota
+        ON mov.numeroNota=nota.numero AND mov.codEmpresa=nota.codEmpresa AND mov.serieFiscal=nota.serie AND mov.idFornecedor=nota.idEmitente
+    JOIN 
+      itemNotaFiscal AS item 
+        ON item.codigo=mov.codItem AND item.numeroNota=mov.numeroNota AND item.idEmpresa=mov.codEmpresa AND mov.idFornecedor=item.idEmitente 
+    JOIN 
+      naturezaOperacao AS nat
+        ON item.cfop=nat.id
+    WHERE 
+      mov.codEmpresa=${id} AND mov.dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" 
+    GROUP BY 
+      codi_rev, mes_ven, ano_ven, oper_ven, cfop_ven, desc_oper, sina_opr, ncmp_pro ORDER BY mov.datalancamento DESC`;
 
     return this.db.mysqlSelect(select);
   }
