@@ -477,7 +477,7 @@ export class ExtractAndInsertService {
       //ITEM
       await this.selectAndInputItem(
         'item',
-        'SELECT i.codigo AS id, i.nome AS nome, i.unidadeMedida AS unidMedida, itemS.pesoBruto AS peso, itemS.qtdeEmbalagemPadrao AS qtdEmbalagem, itemS.mascara AS mascara, CASE WHEN i.nome LIKE "SEM%" THEN "S" ELSE "D" END AS tipo, i.dataInclusao AS dataCriacao, i.dataAlter AS dataAlteracao FROM Cgi.Item AS i JOIN Cgi.ItemSaida AS itemS ON itemS.codEmpresa=1 AND itemS.codItem=i.codigo where i.finalidade=2 AND i.tipo=1 AND itemS.mascara LIKE "12%"',
+        'SELECT i.codigo AS id, i.nome AS nome, i.unidadeMedida AS unidMedida, itemS.pesoBruto AS peso, itemS.qtdeEmbalagemPadrao AS qtdEmbalagem, itemS.mascara AS mascara, ncm.classificacaoFiscal AS ncm, CASE WHEN i.nome LIKE "SEM%" THEN "S" ELSE "D" END AS tipo, i.dataInclusao AS dataCriacao, i.dataAlter AS dataAlteracao FROM Cgi.Item AS i JOIN Cgi.ItemSaida AS itemS ON itemS.codEmpresa=1 AND itemS.codItem=i.codigo JOIN Cgi.ClassificacaoFiscal AS ncm ON i.classificacaoFiscal=ncm.id where i.finalidade=2 AND i.tipo=1 AND itemS.mascara LIKE "12%"',
       );
 
       //EMPRESA
