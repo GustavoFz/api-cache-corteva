@@ -6,12 +6,6 @@ export class CompaniesService {
   constructor(private db: DbService) {}
 
   async findOne(id: number) {
-    const company = [1, 2];
-
-    if (!company.includes(id)) {
-      id = 0;
-    }
-
     const select = `
     SELECT 
       id as codi_rev, 

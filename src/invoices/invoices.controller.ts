@@ -1,4 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
+import { ValidatorDate } from '../validator-date.pipe';
+import { ValidatorId } from '../validator-id.pipe';
 import { InvoicesService } from './invoices.service';
 
 @Controller()
@@ -7,9 +9,9 @@ export class InvoicesController {
 
   @Get(':id/:dateStart/:dateEnd')
   findOne(
-    @Param('id') id: string,
-    @Param('dateStart') dateStart: string,
-    @Param('dateEnd') dateEnd: string,
+    @Param('id', ValidatorId) id: number,
+    @Param('dateStart', ValidatorDate) dateStart: string,
+    @Param('dateEnd', ValidatorDate) dateEnd: string,
   ) {
     return this.invoicesService.findOne(+id, dateStart, dateEnd);
   }

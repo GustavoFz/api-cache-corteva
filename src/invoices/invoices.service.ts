@@ -1,16 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 
 @Injectable()
 export class InvoicesService {
   constructor(private readonly db: DbService) {}
   async findOne(id: number, dateStart: string, dateEnd: string) {
-    const company = [1, 2];
-
-    if (!company.includes(id)) {
-      throw new NotFoundException();
-    }
-
     const data = await this.db.mysqlSelect(`
     SELECT
       (SELECT

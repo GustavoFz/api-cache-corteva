@@ -6,12 +6,6 @@ export class CustomersService {
   constructor(private db: DbService) {}
 
   async findOne(id: number) {
-    const company = [1, 2];
-
-    if (!company.includes(id)) {
-      id = 0;
-    }
-
     //idTipoNota=61 é referente as notas emitidas pelo portal do produtor
 
     const select = `

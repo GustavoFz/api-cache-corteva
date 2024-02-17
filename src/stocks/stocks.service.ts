@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DbService } from '../db/db.service';
 
 @Injectable()
@@ -10,23 +6,6 @@ export class StocksService {
   constructor(private db: DbService) {}
 
   async findOne(id: number, dateStart: string, dateEnd: string) {
-    const company = [1, 2];
-
-    if (!company.includes(id)) {
-      throw new NotFoundException();
-    }
-
-    const r = /^\d{4}-\d{2}-\d{2}$/;
-    if (!r.test(dateStart) || !r.test(dateEnd)) {
-      throw new BadRequestException();
-    }
-
-    const date1 = new Date(dateStart);
-    const date2 = new Date(dateEnd);
-
-    if (date1 > date2) {
-      throw new BadRequestException();
-    }
     // Naturaza 8 Produtos revenda
     // Caso esteja usando MySql Version 5.7.5 ou superior, desabilitar ONLY_FULL_GROUP_BY
 
