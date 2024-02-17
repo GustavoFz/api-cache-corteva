@@ -44,8 +44,9 @@ export class BillingsService {
     WHERE 
       mov.codEmpresa=${id} AND mov.dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" 
     GROUP BY 
-      codi_rev, mes_ven, ano_ven, oper_ven, cfop_ven, desc_oper, sina_opr, ncmp_pro ORDER BY mov.datalancamento DESC`;
+      codi_rev, mes_ven, ano_ven, oper_ven, cfop_ven, desc_oper, sina_opr, ncmp_pro ORDER BY mov.datalancamento DESC
+    `;
 
-    return this.db.mysqlSelect(select);
+    return await this.db.mysqlSelect(select);
   }
 }
