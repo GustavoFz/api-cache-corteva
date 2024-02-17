@@ -37,25 +37,31 @@ export class BillingsService {
       MONTH(mov.dataLancamento) AS mes_ven, 
       "55" AS modl_ven, 
       nota.id AS oper_ven, 
-      item.cfop AS cfop_ven, 
+      itemNota.cfop AS cfop_ven, 
       nat.nome AS desc_oper, 
-      mov.ncm AS ncmp_pro, 
+      item.ncm AS ncmp_pro, 
       IF(mov.operacao=0, "S", "E") AS sina_opr, 
-      SUM(CASE WHEN nota.codEmitente IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.idDestinatario IN (1,2) THEN item.vlrTotal WHEN nota.idEmitente IN (1,2) AND nota.codDestinatario IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN item.vlrTotal ELSE 0 END) AS valf_ven, 
-      SUM(CASE WHEN nota.codEmitente IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.idDestinatario IN (1,2) THEN item.qtd WHEN nota.idEmitente IN (1,2) AND nota.codDestinatario IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN item.qtd ELSE 0 END) AS volf_ven,
-      SUM(CASE WHEN nota.codEmitente NOT IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.codDestinatario NOT IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN item.vlrTotal ELSE 0 END) AS volu_ven,
-      SUM(CASE WHEN nota.codEmitente NOT IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.codDestinatario NOT IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN item.qtd ELSE 0 END) AS volr_ven      
+      SUM(CASE WHEN nota.codEmitente IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.idDestinatario IN (1,2) THEN itemNota.vlrTotal WHEN nota.idEmitente IN (1,2) AND nota.codDestinatario IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN itemNota.vlrTotal ELSE 0 END) AS valf_ven, 
+
+      SUM(CASE WHEN nota.codEmitente IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.idDestinatario IN (1,2) THEN itemNota.qtd WHEN nota.idEmitente IN (1,2) AND nota.codDestinatario IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN itemNota.qtd ELSE 0 END) AS volf_ven,
+
+      SUM(CASE WHEN nota.codEmitente NOT IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.codDestinatario NOT IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN itemNota.vlrTotal ELSE 0 END) AS volu_ven,
+
+      SUM(CASE WHEN nota.codEmitente NOT IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.codDestinatario NOT IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN itemNota.qtd ELSE 0 END) AS volr_ven      
     FROM 
-      movimentacao AS mov
+      movimentacao2 AS mov
     JOIN 
-      notaFiscal AS nota
+      notaFiscal2 AS nota
         ON mov.numeroNota=nota.numero AND mov.codEmpresa=nota.codEmpresa AND mov.serieFiscal=nota.serie AND mov.idFornecedor=nota.idEmitente
     JOIN 
-      itemNotaFiscal AS item 
-        ON item.codigo=mov.codItem AND item.numeroNota=mov.numeroNota AND item.idEmpresa=mov.codEmpresa AND mov.idFornecedor=item.idEmitente 
+      itemNotaFiscal2 AS itemNota 
+        ON itemNota.codigo=mov.codItem AND itemNota.numeroNota=mov.numeroNota AND itemNota.idEmpresa=mov.codEmpresa AND mov.idFornecedor=itemNota.idEmitente 
     JOIN 
       naturezaOperacao AS nat
-        ON item.cfop=nat.id
+        ON itemNota.cfop=nat.id
+    JOIN 
+      item
+        ON itemNota.codigo=item.id
     WHERE 
       mov.codEmpresa=${id} AND mov.dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" 
     GROUP BY 
