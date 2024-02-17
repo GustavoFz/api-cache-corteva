@@ -29,6 +29,7 @@
     "@nestjs/schedule": "^4.0.0",
     "@nestjs/typeorm": "^10.0.1",
     "axios": "^1.5.1",
+    "date-fns": "^3.3.1",
     "mysql2": "^3.7.1",
     "node-gyp": "^10.0.1",
     "odbc": "^2.4.8",
