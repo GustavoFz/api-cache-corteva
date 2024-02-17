@@ -9,7 +9,6 @@ import { CompaniesModule } from './companies/companies.module';
 import { CustomersModule } from './customers/customers.module';
 import { DbModule } from './db/db.module';
 import { ExtractAndInsertModule } from './extract-and-insert/extract-and-insert.module';
-import { GlobalhttpmoduleModule } from './globalhttpmodule/globalhttpmodule.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { StocksModule } from './stocks/stocks.module';
 
@@ -21,7 +20,6 @@ import { StocksModule } from './stocks/stocks.module';
     InvoicesModule,
     BillingsModule,
     CustomersModule,
-    GlobalhttpmoduleModule,
     CompaniesModule,
     ExtractAndInsertModule,
     ConfigModule.forRoot({
