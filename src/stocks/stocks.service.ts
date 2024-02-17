@@ -49,7 +49,7 @@ export class StocksService {
         null AS trat_pro, 
         item.tipo AS fsem_pro 
       FROM 
-        movimentacao AS mov
+        movimentacao2 AS mov
       JOIN 
         item
           ON item.id=mov.codItem
