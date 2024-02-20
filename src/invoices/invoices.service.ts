@@ -28,7 +28,7 @@ export class InvoicesService {
       DATE_FORMAT(nota.dataEmissao, "%Y-%m-%d") AS data_ven,
       DATE_FORMAT(DATE_ADD(nota.dataEmissao, INTERVAL 45 DAY), "%Y-%m-%d") AS datv_ven,
       NULL AS obsv_ven,
-      "obrigatorio" AS orig_ven,
+      CONCAT(nfd.notaReferenciada, '.', nfd.serieReferenciada) AS orig_ven,
       "nota.codCondVenda - obrigatório - não controlamos" AS codi_con,
       "(nota.CondicaoDeVenda->descricao) - obrigatório - não controlamos" AS desc_con,
       "obrigatório - não controlamos" AS tipo_con,
@@ -104,6 +104,8 @@ export class InvoicesService {
        ON mov.codEmpresa=empresa.id
       JOIN naturezaOperacao AS nat
        ON itemNota.cfop=nat.id
+      LEFT JOIN notaFiscalDevolucao AS nfd
+       ON nfd.idEmpresa=nota.codEmpresa AND nfd.notaDevolucao=nota.numero
       WHERE mov.codEmpresa=${id} AND dataLancamento BETWEEN '${dateStart}' AND '${dateEnd}'
     `);
     return data;

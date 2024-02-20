@@ -112,6 +112,7 @@ export class ExtractAndInsertService {
   async selectAndInput(tableInput: any, select: any) {
     try {
       const rows = await this.db.cache(select);
+
       console.log(`Consulta realizada com sucesso na tabela ${tableInput}`);
 
       const columns = Object.keys(rows[0]);
@@ -216,6 +217,7 @@ export class ExtractAndInsertService {
     const listEmitente = itens.map((objeto: any) => String(objeto.codEmitente));
     const listNota = itens.map((objeto: any) => String(objeto.numeroNota));
     const listSerie = itens.map((objeto: any) => String(objeto.serieNota));
+
     return [listEmitente, listNota, listSerie];
   }
   async getListCustomerMysql() {
@@ -386,6 +388,63 @@ export class ExtractAndInsertService {
     await this.selectAndInputMov(
       'movimentacao2',
       `SELECT id AS id, numDocto, codEmpresa, (CASE WHEN codFornecNota!="" THEN STRING(codEmpresa, "||", codFornecNota) ELSE codEmpresa END) AS idFornecedor, COALESCE(codFornecNota, codEmpresa) AS codFornecedor, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, serieFiscal FROM est.movimento WHERE codNatureza1=8 AND codItem IN (${listItens})`,
+    );
+  }
+  async extractNotaDevolucao() {
+    const [listEmitente, listNota, listSerie] = await this.getListNfMysql();
+
+    await this.selectAndInput(
+      'notaFiscalDevolucao',
+      `
+      SELECT 
+        nfd.id,
+        nfd.codEmpresa AS idEmpresa, 
+        nf.cliente AS idEmitenteDevolucao,
+        nfe.numDocumento AS notaDevolucao, 
+        nfe.codSerie AS serieDevolucao, 
+        nfd.codEmpresa AS idDestinatarioDevolucao,
+        nfd.numeroNota AS notaReferenciada, 
+        1 AS serieReferenciada,
+        nfd.dataDevolucao, 
+        nfd.dataEmissao AS dataNotaReferenciada
+      FROM 
+        fat.nfDevolvida AS nfd 
+      JOIN 
+        fat.notafiscal AS nf 
+        ON nfd.codEmpresa=nf.codEmpresa 
+        AND nf.dataEmissao=nfd.dataEmissao 
+        AND nfd.numeroNota=nf.numero
+      JOIN 
+        Est.NotaFiscalEntrada AS nfe 
+        ON nfe.origem=2 
+        AND nfe.codEmpresa=nf.codEmpresa 
+        AND nfe.fornecedor=nf.codCliente 
+      WHERE 
+        nfd.numeroNota IN (${listNota})
+        AND nfe.codSerie IN (${listSerie})
+        AND nfe.dataEmissao=nfd.dataDevolucao
+      `,
+    );
+    await this.selectAndInput(
+      'notaFiscalDevolucao',
+      `
+      SELECT 
+        id,
+        codEmpresa AS idEmpresa, 
+        codEmpresa AS idEmitenteDevolucao,
+        numero AS notaDevolucao, 
+        1 AS serieDevolucao, 
+        STRING(codEmpresa, "||", fornecedor) AS idDestinatarioDevolucao,
+        numDocumento AS notaReferenciada, 
+        codSerie AS serieReferenciada,
+        dataEmissao AS dataDevolucao, 
+        dataEntradaReferenciada AS dataNotaReferenciada
+      FROM 
+        fat.notafiscalReferenciadaEntrada
+      WHERE 
+        numDocumento IN (${listNota})
+        AND codSerie IN (${listSerie})
+      `,
     );
   }
 
