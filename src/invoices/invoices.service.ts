@@ -7,32 +7,24 @@ export class InvoicesService {
   async findOne(id: number, dateStart: string, dateEnd: string) {
     const data = await this.db.mysqlSelect(`
     SELECT
-      (SELECT
-          COUNT(ID)
-      FROM
-          movimentacao
-      WHERE
-          movimentacao.codEmpresa = nota.codEmpresa AND movimentacao.numeroNota = nota.numero AND movimentacao.serieFiscal = nota.serie) AS teste_qtd_itens_nota,
-      nota.id AS codi_ven,
-      itemNota.id as itemId,
-      mov.id as movId,
-      nota.codPedido AS codi_ped,
-      nota.codEmpresa AS codi_rev,
+      mov.id as codi_ven,
+      CONCAT(nota.codPedido, '') AS codi_ped,
+      CONCAT(nota.codEmpresa, '') AS codi_rev,
       item.marca AS codi_fab,
       "55" AS modl_ven,
       empresa.cnpjCpf AS emit_ven,
-      nota.numero AS nume_ven,
-      nota.serie AS seri_ven,
+      CONCAT(nota.numero, '') AS nume_ven,
+      CONCAT(nota.serie, '') AS seri_ven,
       nota.chave AS chav_ven,
-      nota.codNatOperacao AS fina_ven,
+      CONCAT(nota.codNatOperacao, '') AS fina_ven,
       DATE_FORMAT(nota.dataEmissao, "%Y-%m-%d") AS data_ven,
       DATE_FORMAT(DATE_ADD(nota.dataEmissao, INTERVAL 45 DAY), "%Y-%m-%d") AS datv_ven,
       NULL AS obsv_ven,
       CONCAT(nfd.notaReferenciada, '.', nfd.serieReferenciada) AS orig_ven,
-      "nota.codCondVenda - obrigatório - não controlamos" AS codi_con,
-      "(nota.CondicaoDeVenda->descricao) - obrigatório - não controlamos" AS desc_con,
-      "obrigatório - não controlamos" AS tipo_con,
-      "obrigatório - não controlamos" AS praz_con,
+      NULL AS codi_con,
+      NULL AS desc_con,
+      NULL AS tipo_con,
+      NULL AS praz_con,
       NULL AS inde_ven,
       NULL AS dind_ven,
       NULL AS bund_ven,
@@ -44,7 +36,7 @@ export class InvoicesService {
       nat.nome AS desc_opr,
       IF(mov.operacao=0, "S", "E") AS sina_opr,
       nota.idDestinatario AS codi_cli,
-      itemNota.codigo AS codi_pro,
+      CONCAT(itemNota.codigo, '') AS codi_pro,
       item.nome AS desc_pro,
       item.ncm AS ncmp_pro,
       item.unidMedida AS unid_pro,

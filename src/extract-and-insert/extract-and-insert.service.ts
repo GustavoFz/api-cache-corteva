@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { DbService } from '../db/db.service';
 
 @Injectable()
@@ -349,6 +349,7 @@ export class ExtractAndInsertService {
   }
   async extractNota() {
     const [listEmitente, listNota, listSerie] = await this.getListNfMysql();
+
     await this.selectAndInput(
       'notaFiscal2',
       `SELECT nota.id, nota.codEmpresa, nota.codEmpresa AS idEmitente, nota.codEmpresa AS codEmitente, STRING(nota.codEmpresa, "||", nota.codCliente) AS idDestinatario, nota.codCliente AS codDestinatario, TO_NUMBER(nota.codPedido) AS codPedido, nota.numero AS numero, nota.codSerie AS serie, chave.chaveAcesso AS chave, nota.codTipoDeNota AS idNatOperacao, nota.codTipoDeNota->tipoFinalNfe+1 AS codNatOperacao, nota.codTipoDeNota->descricao AS descNatOperacao,  %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS nomeNatOperacao, CASE WHEN nota.situacao=2 THEN 1 ELSE 0 END AS situacao, nota.dataEmissao, nota.dataEmissao AS dataEntrada FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (${this.empresas}) AND nota.codEmpresa IN (${listEmitente}) AND nota.numero IN (${listNota}) AND nota.codSerie IN (${listSerie})`,
@@ -449,13 +450,11 @@ export class ExtractAndInsertService {
   }
 
   onModuleInit() {
-    // this.processData();
+    this.processData();
   }
 
   // Cron de Segunda a Sabado entre as 7h e 19h a cada 2 horas
-  // '0 7-19/2 * * 1-6'
-
-  @Cron(CronExpression.EVERY_DAY_AT_9PM, {
+  @Cron('0 7-19/4 * * 1-6', {
     name: 'Atualização',
     timeZone: 'America/Porto_Velho',
   })
