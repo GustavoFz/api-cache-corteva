@@ -420,11 +420,11 @@ export class ExtractAndInsertService {
     const listCostumers = await this.getListCustomerMysql();
 
     await this.selectAndInput(
-      'cliente_empresa2',
+      'cliente_empresa',
       `SELECT cliente.id AS id, cliente.codCliente AS codigo, cliente.codEmpresa, cliente.cnpjCpf AS cnpjCpf, cliente.inscEstadual AS inscEstadual, cliente.nome AS razaoSocial, COALESCE(cliente.fantasia, "") AS nomeFantasia, cliente.cep AS cep, cliente.endereco, %EXTERNAL(cliente.enderecoNumero) AS numeroEndereco, cliente.bairro, cliente.nomeCidade AS cidade, cliente.nomeEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(compl.telefone, compl.telexCelular, compl.fax) AS telefone, cliente.email AS email, %ODBCOUT(COALESCE(cliente.dataAlterSituacao, compl2.dataAlter, DATE("2000-01-01"))) AS dataRegistro, (CASE wHEN cliente.situacao=1 THEN 1 ELSE 0 END) AS situacao, "C" AS tipoCadastro FROM fat.cliente AS cliente JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(cliente.cep,1,5) JOIN Fat.CliComplemento2 AS compl ON cliente.ID=compl.ID JOIN Fat.CliComplemento3 AS compl2 ON cliente.id=compl2.ID WHERE cliente.id IN (${listCostumers})`,
     );
     await this.selectAndInput(
-      'cliente_empresa2',
+      'cliente_empresa',
       `SELECT empresa.id AS id, empresa.id AS codigo, 1 AS codEmpresa, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao, "E" AS tipoCadastro FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5) WHERE empresa.id IN (${listCostumers}) `,
     );
   }

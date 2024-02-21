@@ -28,7 +28,7 @@ export class CustomersService {
       DATE_FORMAT(dataRegistro, "%Y-%m-%d") AS duma_cli,
       null AS dnac_cli 
     FROM 
-      cliente_empresa2
+      cliente_empresa
     WHERE 
       codEmpresa=${id}
     `;

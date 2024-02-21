@@ -90,7 +90,7 @@ export class InvoicesService {
        ON itemNota.codigo=mov.codItem AND itemNota.numeroNota=mov.numeroNota AND itemNota.idEmpresa=mov.codEmpresa AND mov.idFornecedor=itemNota.idEmitente
       JOIN item
        ON item.id=itemNota.codigo
-      JOIN cliente_empresa2 AS cliente 
+      JOIN cliente_empresa AS cliente 
        ON nota.idDestinatario=cliente.id
       JOIN empresa 
        ON mov.codEmpresa=empresa.id
