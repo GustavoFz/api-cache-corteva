@@ -1,0 +1,16 @@
+[Cache]
+Driver=[cache odbc]
+Description=Cache ODBC driver
+Host=
+Namespace=
+UID=
+Password=
+Port=1972
+Protocol=TCP
+Query Timeout=1
+Static Cursors=0
+Trace=off
+TraceFile=iodbctrace.log
+Authentication Method=0
+Security Level=2
+Service Principal Name=cache/localhost.domain.com

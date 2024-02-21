@@ -1,0 +1,47 @@
+version: '3.7'
+
+services:
+  api:
+    image: corteva-app
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - '3000:3000'
+    networks:
+      - corteva-network
+
+  db:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: cache
+      MYSQL_USER: cache
+      MYSQL_PASSWORD: cache
+      MYSQL_ROOT_PASSWORD: cache
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_volume:/var/lib/mysql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - corteva-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    restart: always
+    environment:
+      PMA_HOST: db
+      MYSQL_USERNAME: cache
+      MYSQL_ROOT_PASSWORD: cache
+    ports:
+      - '8080:80'
+    networks:
+      - corteva-network
+
+networks:
+  corteva-network:
+    driver: bridge
+
+volumes:
+  mysql_volume:

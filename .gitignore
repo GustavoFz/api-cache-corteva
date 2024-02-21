@@ -38,4 +38,5 @@ lerna-debug.log*
 .env
 
 # ODBC CACHE
-/odbccache
+/odbc-cache
+odbc.ini
