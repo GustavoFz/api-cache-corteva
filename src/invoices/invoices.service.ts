@@ -83,10 +83,10 @@ export class InvoicesService {
       DATE_FORMAT(cliente.dataRegistro, "%Y-%m-%d") AS duma_cli,
       NULL AS dnac_cli
       FROM
-          movimentacao2 AS mov
-      JOIN notaFiscal2 AS nota
+          movimentacao AS mov
+      JOIN notaFiscal AS nota
        ON mov.numeroNota=nota.numero AND mov.codEmpresa=nota.codEmpresa AND mov.serieFiscal=nota.serie AND mov.idFornecedor=nota.idEmitente
-      JOIN itemNotaFiscal2 AS itemNota
+      JOIN itemNotaFiscal AS itemNota
        ON itemNota.codigo=mov.codItem AND itemNota.numeroNota=mov.numeroNota AND itemNota.idEmpresa=mov.codEmpresa AND mov.idFornecedor=itemNota.idEmitente
       JOIN item
        ON item.id=itemNota.codigo

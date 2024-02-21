@@ -212,7 +212,7 @@ export class ExtractAndInsertService {
   }
   async getListNfMysql() {
     const itens: any = await this.db.mysqlSelect(
-      'SELECT codEmitente, numeroNota, serieNota FROM itemNotaFiscal2 GROUP BY codEmitente, numeroNota, serieNota',
+      'SELECT codEmitente, numeroNota, serieNota FROM itemNotaFiscal GROUP BY codEmitente, numeroNota, serieNota',
     );
     const listEmitente = itens.map((objeto: any) => String(objeto.codEmitente));
     const listNota = itens.map((objeto: any) => String(objeto.numeroNota));
@@ -222,7 +222,7 @@ export class ExtractAndInsertService {
   }
   async getListCustomerMysql() {
     const itens: any = await this.db.mysqlSelect(
-      'SELECT idDestinatario FROM notaFiscal2',
+      'SELECT idDestinatario FROM notaFiscal',
     );
     const listCostumers = itens.map((objeto: any) =>
       String(`"${objeto.idDestinatario}"`),
@@ -232,7 +232,7 @@ export class ExtractAndInsertService {
   }
   async getListSupplierMysql() {
     const itens: any = await this.db.mysqlSelect(
-      'SELECT idEmitente FROM notaFiscal2',
+      'SELECT idEmitente FROM notaFiscal',
     );
     const listSupplier = itens.map((objeto: any) =>
       String(`"${objeto.idEmitente}"`),
@@ -339,11 +339,11 @@ export class ExtractAndInsertService {
   async extractItemNota() {
     const listItens = await this.getListItensMysql();
     await this.selectAndInput(
-      'itemNotaFiscal2',
+      'itemNotaFiscal',
       `SELECT item.id, item.codEmpresa AS idEmpresa, item.codEmpresa AS idEmitente, item.codEmpresa AS codEmitente, TO_NUMBER(item.numero) AS numeroNota, 1 AS serieNota, item.codProduto AS codigo, item.vlrItem AS vlrCustoEntradaUnitario, item.precoUnitarioFloat AS vlrUnitario, item.vlrItem AS vlrTotal, item.qtdeFaturada AS qtd, item.codNatOperacao AS cfop, item.vlrDesconto, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, 0 AS vlrIpi, "S" AS tipoNota, item.dataEmissao, item.dataEmissao AS dataEntrada FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codProduto IN (${listItens})`,
     );
     await this.selectAndInput(
-      'itemNotaFiscal2',
+      'itemNotaFiscal',
       `SELECT item.id, item.codEmpresa AS idEmpresa, STRING(item.codEmpresa, "||", item.codFornecedor) AS idEmitente, item.codFornecedor AS codEmitente, TO_NUMBER(item.numDocumento) AS numeroNota, item.codSerie AS serieNota, TO_NUMBER(item.codMaterial) AS codigo, item.custoEntrada AS vlrCustoEntradaUnitario, CAST((item.valorTotalItem/item.quantidade) AS NUMERIC(18,4)) AS vlrUnitario, item.valorTotalItem AS vlrTotal, item.quantidade AS qtd, item.naturezaOperacao AS cfop, 0 AS vlrDesconto, item.ValorCOFINS AS vlrCofins, item.valorICMS AS vlrIcms, item.valorPisPasepRec AS vlrPis, 0 AS vlrTributoNfc, item.valorIPI AS vlrIpi, "E" AS tipoNota, null AS dataEmissao, item.dataEntrada FROM est.NotaFiscalEntradaItens AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codMaterial IN (${listItens})`,
     );
   }
@@ -351,44 +351,12 @@ export class ExtractAndInsertService {
     const [listEmitente, listNota, listSerie] = await this.getListNfMysql();
 
     await this.selectAndInput(
-      'notaFiscal2',
+      'notaFiscal',
       `SELECT nota.id, nota.codEmpresa, nota.codEmpresa AS idEmitente, nota.codEmpresa AS codEmitente, STRING(nota.codEmpresa, "||", nota.codCliente) AS idDestinatario, nota.codCliente AS codDestinatario, TO_NUMBER(nota.codPedido) AS codPedido, nota.numero AS numero, nota.codSerie AS serie, chave.chaveAcesso AS chave, nota.codTipoDeNota AS idNatOperacao, nota.codTipoDeNota->tipoFinalNfe+1 AS codNatOperacao, nota.codTipoDeNota->descricao AS descNatOperacao,  %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS nomeNatOperacao, CASE WHEN nota.situacao=2 THEN 1 ELSE 0 END AS situacao, nota.dataEmissao, nota.dataEmissao AS dataEntrada FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (${this.empresas}) AND nota.codEmpresa IN (${listEmitente}) AND nota.numero IN (${listNota}) AND nota.codSerie IN (${listSerie})`,
     );
     await this.selectAndInput(
-      'notaFiscal2',
+      'notaFiscal',
       `SELECT nota.id, nota.codEmpresa, STRING(nota.codEmpresa, "||", nota.fornecedor) AS idEmitente, nota.fornecedor AS codEmitente, nota.codEmpresa AS idDestinatario, nota.codEmpresa AS codDestinatario, NULL AS codPedido, TO_NUMBER(nota.numDocumento) AS numero, nota.codSerie AS serie, STRING(chave.chavenfe) AS chave, NULL AS idNatOperacao, CASE WHEN nota.especieDocumento=2 THEN 1 WHEN nota.especieDocumento=3 THEN 4 WHEN nota.especieDocumento=7 THEN 2 ELSE nota.especieDocumento END AS codNatOperacao, nota.naturezaOperacao->nome AS descNatOperacao, %EXTERNAL(nota.especieDocumento) AS nomeNatOperacao, 1 AS situacao, nota.dataEmissao, nota.dataEntrada FROM est.notafiscalentrada AS nota JOIN est.NotaFiscalEntradaChavElet AS chave ON nota.codEmpresa=chave.codEmpresa AND nota.numDocumento=chave.numDocumento AND nota.codSerie=chave.codSerie AND nota.fornecedor=chave.fornecedor WHERE nota.codEmpresa IN (${this.empresas}) AND nota.fornecedor IN (${listEmitente}) AND TO_NUMBER(nota.numDocumento) IN (${listNota}) AND nota.codSerie IN (${listSerie})`,
-    );
-  }
-  async extractCustomer() {
-    const listCostumers = await this.getListCustomerMysql();
-
-    await this.selectAndInput(
-      'cliente_empresa2',
-      `SELECT cliente.id AS id, cliente.codCliente AS codigo, cliente.codEmpresa, cliente.cnpjCpf AS cnpjCpf, cliente.inscEstadual AS inscEstadual, cliente.nome AS razaoSocial, COALESCE(cliente.fantasia, "") AS nomeFantasia, cliente.cep AS cep, cliente.endereco, %EXTERNAL(cliente.enderecoNumero) AS numeroEndereco, cliente.bairro, cliente.nomeCidade AS cidade, cliente.nomeEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(compl.telefone, compl.telexCelular, compl.fax) AS telefone, cliente.email AS email, %ODBCOUT(COALESCE(cliente.dataAlterSituacao, compl2.dataAlter, DATE("2000-01-01"))) AS dataRegistro, (CASE wHEN cliente.situacao=1 THEN 1 ELSE 0 END) AS situacao, "C" AS tipoCadastro FROM fat.cliente AS cliente JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(cliente.cep,1,5) JOIN Fat.CliComplemento2 AS compl ON cliente.ID=compl.ID JOIN Fat.CliComplemento3 AS compl2 ON cliente.id=compl2.ID WHERE cliente.id IN (${listCostumers})`,
-    );
-    await this.selectAndInput(
-      'cliente_empresa2',
-      `SELECT empresa.id AS id, empresa.id AS codigo, 1 AS codEmpresa, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao, "E" AS tipoCadastro FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5) WHERE empresa.id IN (${listCostumers}) `,
-    );
-  }
-  async extractCompany() {
-    await this.selectAndInput(
-      'empresa',
-      'SELECT empresa.id AS id, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5)',
-    );
-  }
-  async extractSupplier() {
-    const listSupplier = await this.getListSupplierMysql();
-    await this.selectAndInput(
-      'fornecedor2',
-      `SELECT fornecedor.id AS id, fornecedor.codigo, fornecedor.codEmpresa, fornecedor.cnpjCpf AS cnpjCpf, fornecedor.inscEstadual, fornecedor.nome AS razaoSocial, COALESCE(fornecedor.fantasia, "") AS nomeFantasia, fornecedor.cep AS cep, fornecedor.endereco, fornecedor.nroEndereco AS numeroEndereco, fornecedor.bairro, fornecedor.nomeCidade AS cidade, fornecedor.siglaEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(fornecedor.telefone, fornecedor.telefone1) AS telefone, fornecedor.email, COALESCE(fornecedor.dataSituacao, DATE("2000-01-01")) AS dataRegistro FROM cpg.fornecedor AS fornecedor JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(fornecedor.cep,1,5) WHERE fornecedor.id IN (${listSupplier})`,
-    );
-  }
-  async extractTransaction() {
-    const listItens = await this.getListItensMysql();
-    await this.selectAndInputMov(
-      'movimentacao2',
-      `SELECT id AS id, numDocto, codEmpresa, (CASE WHEN codFornecNota!="" THEN STRING(codEmpresa, "||", codFornecNota) ELSE codEmpresa END) AS idFornecedor, COALESCE(codFornecNota, codEmpresa) AS codFornecedor, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, serieFiscal FROM est.movimento WHERE codNatureza1=8 AND codItem IN (${listItens})`,
     );
   }
   async extractNotaDevolucao() {
@@ -448,6 +416,44 @@ export class ExtractAndInsertService {
       `,
     );
   }
+  async extractCustomer() {
+    const listCostumers = await this.getListCustomerMysql();
+
+    await this.selectAndInput(
+      'cliente_empresa2',
+      `SELECT cliente.id AS id, cliente.codCliente AS codigo, cliente.codEmpresa, cliente.cnpjCpf AS cnpjCpf, cliente.inscEstadual AS inscEstadual, cliente.nome AS razaoSocial, COALESCE(cliente.fantasia, "") AS nomeFantasia, cliente.cep AS cep, cliente.endereco, %EXTERNAL(cliente.enderecoNumero) AS numeroEndereco, cliente.bairro, cliente.nomeCidade AS cidade, cliente.nomeEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(compl.telefone, compl.telexCelular, compl.fax) AS telefone, cliente.email AS email, %ODBCOUT(COALESCE(cliente.dataAlterSituacao, compl2.dataAlter, DATE("2000-01-01"))) AS dataRegistro, (CASE wHEN cliente.situacao=1 THEN 1 ELSE 0 END) AS situacao, "C" AS tipoCadastro FROM fat.cliente AS cliente JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(cliente.cep,1,5) JOIN Fat.CliComplemento2 AS compl ON cliente.ID=compl.ID JOIN Fat.CliComplemento3 AS compl2 ON cliente.id=compl2.ID WHERE cliente.id IN (${listCostumers})`,
+    );
+    await this.selectAndInput(
+      'cliente_empresa2',
+      `SELECT empresa.id AS id, empresa.id AS codigo, 1 AS codEmpresa, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao, "E" AS tipoCadastro FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5) WHERE empresa.id IN (${listCostumers}) `,
+    );
+  }
+  async extractCompany() {
+    await this.selectAndInput(
+      'empresa',
+      'SELECT empresa.id AS id, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5)',
+    );
+  }
+  async extractSupplier() {
+    const listSupplier = await this.getListSupplierMysql();
+    await this.selectAndInput(
+      'fornecedor',
+      `SELECT fornecedor.id AS id, fornecedor.codigo, fornecedor.codEmpresa, fornecedor.cnpjCpf AS cnpjCpf, fornecedor.inscEstadual, fornecedor.nome AS razaoSocial, COALESCE(fornecedor.fantasia, "") AS nomeFantasia, fornecedor.cep AS cep, fornecedor.endereco, fornecedor.nroEndereco AS numeroEndereco, fornecedor.bairro, fornecedor.nomeCidade AS cidade, fornecedor.siglaEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(fornecedor.telefone, fornecedor.telefone1) AS telefone, fornecedor.email, COALESCE(fornecedor.dataSituacao, DATE("2000-01-01")) AS dataRegistro FROM cpg.fornecedor AS fornecedor JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(fornecedor.cep,1,5) WHERE fornecedor.id IN (${listSupplier})`,
+    );
+  }
+  async extractTransaction() {
+    const listItens = await this.getListItensMysql();
+    await this.selectAndInputMov(
+      'movimentacao',
+      `SELECT id AS id, numDocto, codEmpresa, (CASE WHEN codFornecNota!="" THEN STRING(codEmpresa, "||", codFornecNota) ELSE codEmpresa END) AS idFornecedor, COALESCE(codFornecNota, codEmpresa) AS codFornecedor, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, serieFiscal FROM est.movimento WHERE codNatureza1=8 AND codItem IN (${listItens})`,
+    );
+  }
+  async extractNaturezaOperacao() {
+    await this.selectAndInput(
+      'naturezaOperacao',
+      'SELECT id, UPPER(nome) AS nome FROM cad.natOperacao',
+    );
+  }
 
   onModuleInit() {
     this.processData();
@@ -479,10 +485,7 @@ export class ExtractAndInsertService {
       await this.extractSupplier();
 
       // 7 - NATUREZA DE OPERACAO - EXTRAI CODIGO E DESCRICAO CFOP
-      await this.selectAndInput(
-        'naturezaOperacao',
-        'SELECT id, UPPER(nome) AS nome FROM cad.natOperacao',
-      );
+      await this.extractNaturezaOperacao();
 
       // 8 - MOVIMENTO FISCAL
       await this.extractTransaction();

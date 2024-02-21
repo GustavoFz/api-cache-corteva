@@ -28,12 +28,12 @@ export class BillingsService {
 
       SUM(CASE WHEN nota.codEmitente NOT IN (204,216,224,610,621,622,2883,6382,10086,11111,11192,32586,32835) AND nota.codDestinatario NOT IN ("1||10264","1||11","1||12665","1||22","1||3","1||60","1||64","1||66","1||7085","1||77","1||8367","2|| 10264","2||11","2||12665","2||22","2||3","2||60","2||64","2||66","2||7085","2||77","2||8367") THEN itemNota.qtd ELSE 0 END) AS volr_ven      
     FROM 
-      movimentacao2 AS mov
+      movimentacao AS mov
     JOIN 
-      notaFiscal2 AS nota
+      notaFiscal AS nota
         ON mov.numeroNota=nota.numero AND mov.codEmpresa=nota.codEmpresa AND mov.serieFiscal=nota.serie AND mov.idFornecedor=nota.idEmitente
     JOIN 
-      itemNotaFiscal2 AS itemNota 
+      itemNotaFiscal AS itemNota 
         ON itemNota.codigo=mov.codItem AND itemNota.numeroNota=mov.numeroNota AND itemNota.idEmpresa=mov.codEmpresa AND mov.idFornecedor=itemNota.idEmitente 
     JOIN 
       naturezaOperacao AS nat
