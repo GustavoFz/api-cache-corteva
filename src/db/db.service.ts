@@ -9,13 +9,13 @@ export class DbService {
   constructor(private env: ConfigService) {}
 
   private readonly targetDbConfig = {
-    host: this.env.get<string>('API_MYSQL_HOST'),
-    user: this.env.get<string>('API_MYSQL_USER'),
-    password: this.env.get<string>('API_MYSQL_PASS'),
-    database: this.env.get<string>('API_MYSQL_DATABASE'),
+    host: this.env.get<string>('MYSQL_HOST'),
+    user: this.env.get<string>('MYSQL_USER'),
+    password: this.env.get<string>('MYSQL_PASS'),
+    database: this.env.get<string>('MYSQL_DATABASE'),
   };
 
-  private readonly odbc_config = this.env.get<string>('API_ODBC_CONFIG');
+  private readonly odbc_config = this.env.get<string>('CACHE_ODBC_CONFIG');
 
   async cache(sql: string) {
     try {
