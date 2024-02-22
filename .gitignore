@@ -36,6 +36,7 @@ lerna-debug.log*
 
 # ENV
 .env
+.env.development
 
 # ODBC CACHE
 /odbc-cache
