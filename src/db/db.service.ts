@@ -11,7 +11,7 @@ export class DbService {
   private readonly targetDbConfig = {
     host: this.env.get<string>('MYSQL_HOST'),
     user: this.env.get<string>('MYSQL_USER'),
-    password: this.env.get<string>('MYSQL_PASS'),
+    password: this.env.get<string>('MYSQL_PASSWORD'),
     database: this.env.get<string>('MYSQL_DATABASE'),
   };
 
