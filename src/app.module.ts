@@ -11,6 +11,7 @@ import { DbModule } from './db/db.module';
 import { ExtractAndInsertModule } from './extract-and-insert/extract-and-insert.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { StocksModule } from './stocks/stocks.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { StocksModule } from './stocks/stocks.module';
         ],
       },
     ]),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
