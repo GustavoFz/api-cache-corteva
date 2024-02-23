@@ -8,18 +8,18 @@ import * as odbc from 'odbc';
 export class DbService {
   constructor(private env: ConfigService) {}
 
-  private readonly targetDbConfig = {
+  private readonly dbConfig = {
     host: this.env.get<string>('MYSQL_HOST'),
     user: this.env.get<string>('MYSQL_USER'),
     password: this.env.get<string>('MYSQL_PASSWORD'),
     database: this.env.get<string>('MYSQL_DATABASE'),
   };
 
-  private readonly odbc_config = this.env.get<string>('CACHE_ODBC_CONFIG');
+  private readonly odbcConfig = this.env.get<string>('CACHE_ODBC_CONFIG');
 
   async cache(sql: string) {
     try {
-      const connection = await odbc.connect(this.odbc_config);
+      const connection = await odbc.connect(this.odbcConfig);
       const result = await connection.query(sql);
       await connection.close();
       return result;
@@ -30,13 +30,13 @@ export class DbService {
   }
 
   async mysql(query, values) {
-    const connection = await mysql.createConnection(this.targetDbConfig);
+    const connection = await mysql.createConnection(this.dbConfig);
     await connection.query(query, values);
     connection.end();
   }
 
   async mysqlSelect(query) {
-    const connection = await mysql.createConnection(this.targetDbConfig);
+    const connection = await mysql.createConnection(this.dbConfig);
     const [results] = await connection.query(query);
     connection.end();
     return results;
