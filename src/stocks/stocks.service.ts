@@ -19,7 +19,7 @@ export class StocksService {
         item.unidMedida AS unid_pro,
         null AS barr_pro,
         null AS cind_pro,
-        DATE_FORMAT(mov.dataLancamento, "%Y-%m-%d") AS date_pro,
+        DATE_FORMAT(DATE_SUB(CURRENT_TIMESTAMP(), INTERVAL 4 HOUR), "%Y-%m-%d")  AS date_pro,
         null AS lote_pro,
         GREATEST(SUM(CASE WHEN operacao = 0 THEN -mov.qtdItem ELSE mov.qtdItem END), 0, 0) AS qtde_prod, 
         GREATEST(SUM(CASE WHEN operacao = 0 THEN -mov.qtdItem ELSE mov.qtdItem END), 0, 0) AS qtdi_pro, 
@@ -33,12 +33,12 @@ export class StocksService {
         item
           ON item.id=mov.codItem
       WHERE 
-        codEmpresa=${id} AND dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" 
+        codEmpresa=${id} AND item.marca="CORTEVA" AND dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" 
       GROUP BY 
         mov.codItem 
       ORDER BY 
         datalancamento DESC`;
 
-    return this.db.mysqlSelect(select);
+    return await this.db.mysqlSelect(select);
   }
 }

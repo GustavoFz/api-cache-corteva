@@ -15,7 +15,7 @@ export class BillingsService {
       YEAR(mov.dataLancamento) AS ano_ven, 
       MONTH(mov.dataLancamento) AS mes_ven, 
       "55" AS modl_ven, 
-      nota.id AS oper_ven, 
+      itemNota.cfop AS oper_ven, 
       itemNota.cfop AS cfop_ven, 
       nat.nome AS desc_oper, 
       item.ncm AS ncmp_pro, 

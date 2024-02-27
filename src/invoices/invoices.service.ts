@@ -66,7 +66,7 @@ export class InvoicesService {
       NULL AS bair_ivn,
       NULL AS comp_ivn,
       NULL AS cepc_ivn,
-      empresa.codigoIbge AS muni_ivn,
+      cliente.codigoIbge AS muni_ivn,
       cliente.cnpjCpf AS cnpj_cli,
       cliente.inscEstadual AS insc_cli,
       cliente.razaoSocial AS nome_cli,
@@ -98,7 +98,7 @@ export class InvoicesService {
        ON itemNota.cfop=nat.id
       LEFT JOIN notaFiscalDevolucao AS nfd
        ON nfd.idEmpresa=nota.codEmpresa AND nfd.notaDevolucao=nota.numero
-      WHERE mov.codEmpresa=${id} AND dataLancamento BETWEEN '${dateStart}' AND '${dateEnd}'
+      WHERE mov.codEmpresa=${id} AND item.marca="CORTEVA" AND dataLancamento BETWEEN '${dateStart}' AND '${dateEnd}'
     `);
     return data;
   }

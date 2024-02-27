@@ -5,8 +5,8 @@ import { DbService } from '../db/db.service';
 @Injectable()
 export class ExtractAndInsertService {
   constructor(private db: DbService) {}
-  empresas = [1, 2];
-  produtosCorteva = [
+  private empresas = [1, 2];
+  private produtosCorteva = [
     'Acapela',
     'Accent',
     'Aproach',
@@ -421,11 +421,11 @@ export class ExtractAndInsertService {
 
     await this.selectAndInput(
       'cliente_empresa',
-      `SELECT cliente.id AS id, cliente.codCliente AS codigo, cliente.codEmpresa, cliente.cnpjCpf AS cnpjCpf, cliente.inscEstadual AS inscEstadual, cliente.nome AS razaoSocial, COALESCE(cliente.fantasia, "") AS nomeFantasia, cliente.cep AS cep, cliente.endereco, %EXTERNAL(cliente.enderecoNumero) AS numeroEndereco, cliente.bairro, cliente.nomeCidade AS cidade, cliente.nomeEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(compl.telefone, compl.telexCelular, compl.fax) AS telefone, cliente.email AS email, %ODBCOUT(COALESCE(cliente.dataAlterSituacao, compl2.dataAlter, DATE("2000-01-01"))) AS dataRegistro, (CASE wHEN cliente.situacao=1 THEN 1 ELSE 0 END) AS situacao, "C" AS tipoCadastro FROM fat.cliente AS cliente JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(cliente.cep,1,5) JOIN Fat.CliComplemento2 AS compl ON cliente.ID=compl.ID JOIN Fat.CliComplemento3 AS compl2 ON cliente.id=compl2.ID WHERE cliente.id IN (${listCostumers})`,
+      `SELECT cliente.id AS id, cliente.codCliente AS codigo, cliente.codEmpresa, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.cnpjCpf END) AS cnpjCpf, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(cliente.inscEstadual, "ISENTO") END) AS inscEstadual, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.nome END) AS razaoSocial, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(cliente.fantasia, "") END) AS nomeFantasia, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.cep END) AS cep, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.endereco END) AS endereco, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE %EXTERNAL(cliente.enderecoNumero) END) AS numeroEndereco, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.bairro END) AS bairro, cliente.nomeCidade AS cidade, cliente.nomeEstado AS estado, ibge.codIBGE AS codigoIbge, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(compl.telefone, compl.fax, "NAOINFO") END) AS telefone, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(compl.telexCelular, "NAOINFO") END) AS celular, cliente.email AS email, %ODBCOUT(COALESCE(cliente.dataAlterSituacao, compl2.dataAlter, DATE("2000-01-01"))) AS dataRegistro, (CASE wHEN cliente.situacao=1 THEN 1 ELSE 0 END) AS situacao, "C" AS tipoCadastro FROM fat.cliente AS cliente JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(cliente.cep,1,5) JOIN Fat.CliComplemento2 AS compl ON cliente.ID=compl.ID JOIN Fat.CliComplemento3 AS compl2 ON cliente.id=compl2.ID WHERE cliente.id IN (${listCostumers})`,
     );
     await this.selectAndInput(
       'cliente_empresa',
-      `SELECT empresa.id AS id, empresa.id AS codigo, 1 AS codEmpresa, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao, "E" AS tipoCadastro FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5) WHERE empresa.id IN (${listCostumers}) `,
+      `SELECT empresa.id AS id, empresa.id AS codigo, 1 AS codEmpresa, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, COALESCE(empresa.telefone, "NAOINFO") AS telefone, "69 99233-6880" AS celular, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao, "E" AS tipoCadastro FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5) WHERE empresa.id IN (${listCostumers}) `,
     );
   }
   async extractCompany() {
@@ -474,6 +474,7 @@ export class ExtractAndInsertService {
 
       // 3 - NOTAS FISCAIS - EXTRAI NOTAS DE ENTRADA E SAIDA DO CONSISTEM COM BASE NOS NUMEROS DE NOTAS EXISTENTES NATABELA 'itemNotaFiscal' DO DB
       await this.extractNota();
+      await this.extractNotaDevolucao();
 
       // 4 - CLIENTE/EMPRESA - EXTRAI CLIENTES E EMPRESAS RICAL DO CONSISTEM COM BASE NOS CLIENTES EXISTENTES NA TABELA 'NotaFiscal' DO DB
       await this.extractCustomer();
@@ -490,9 +491,9 @@ export class ExtractAndInsertService {
       // 8 - MOVIMENTO FISCAL
       await this.extractTransaction();
 
-      console.log('Data processed successfully.');
+      console.log('Dados processados com sucesso.');
     } catch (error) {
-      console.error('Error processing data:', error);
+      console.error('Erro ao processar dados:', error);
     }
   }
 }

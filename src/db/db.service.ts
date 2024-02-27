@@ -37,8 +37,18 @@ export class DbService {
 
   async mysqlSelect(query) {
     const connection = await mysql.createConnection(this.dbConfig);
-    const [results] = await connection.query(query);
+    const [results]: mysql.RowDataPacket[] | any =
+      await connection.query(query);
     connection.end();
+
+    results.map((object) => {
+      for (const prop in object) {
+        if (object[prop] === null) {
+          object[prop] = 'null';
+        }
+      }
+      return object;
+    });
     return results;
   }
 }
