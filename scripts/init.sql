@@ -12,33 +12,6 @@ USE `cache`;
 -- --------------------------------------------------------
 
 --
--- Estrutura para tabela `cliente`
---
-
-CREATE TABLE `cliente` (
-  `id` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `codCliente` int NOT NULL,
-  `codEmpresa` int NOT NULL,
-  `cnpjCpf` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `inscEstadual` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `razaoSocial` varchar(255) NOT NULL,
-  `nomeFantasia` varchar(255) NOT NULL,
-  `cep` varchar(10) NOT NULL,
-  `endereco` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `numeroEndereco` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `bairro` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `cidade` varchar(255) NOT NULL,
-  `estado` varchar(20) NOT NULL,
-  `codigoIbge` varchar(15) DEFAULT NULL,
-  `telefone` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `email` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `dataRegistro` date DEFAULT NULL,
-  `situacao` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
 -- Estrutura para tabela `cliente_empresa`
 --
 
@@ -57,7 +30,8 @@ CREATE TABLE `cliente_empresa` (
   `cidade` varchar(100) NOT NULL,
   `estado` varchar(50) NOT NULL,
   `codigoIbge` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `telefone` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `telefone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `celular` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `situacao` tinyint(1) NOT NULL,
   `tipoCadastro` varchar(1) NOT NULL,
@@ -84,6 +58,7 @@ CREATE TABLE `empresa` (
   `estado` varchar(254) NOT NULL,
   `codigoIbge` varchar(15) NOT NULL,
   `telefone` varchar(20) NOT NULL,
+  `celular` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `email` varchar(50) NOT NULL,
   `dataRegistro` date NOT NULL,
   `situacao` tinyint(1) NOT NULL
@@ -248,13 +223,6 @@ CREATE TABLE `notaFiscalDevolucao` (
 --
 -- Índices para tabelas despejadas
 --
-
---
--- Índices de tabela `cliente`
---
-ALTER TABLE `cliente`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `codEmpresa` (`codEmpresa`,`codCliente`);
 
 --
 -- Índices de tabela `cliente_empresa`
