@@ -7,10 +7,10 @@ export class InvoicesService {
   async findOne(id: number, dateStart: string, dateEnd: string) {
     const data = await this.db.mysqlSelect(`
     SELECT
-      mov.id as codi_ven,
+      CONCAT(mov.id, '') as codi_ven,
       CONCAT(nota.codPedido, '') AS codi_ped,
       CONCAT(nota.codEmpresa, '') AS codi_rev,
-      item.marca AS codi_fab,
+      CONCAT(item.marca, '') AS codi_fab,
       "55" AS modl_ven,
       empresa.cnpjCpf AS emit_ven,
       CONCAT(nota.numero, '') AS nume_ven,

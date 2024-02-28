@@ -11,9 +11,9 @@ export class BillingsService {
 
     const select = `
     SELECT 
-      mov.codEmpresa AS codi_rev, 
-      YEAR(mov.dataLancamento) AS ano_ven, 
-      MONTH(mov.dataLancamento) AS mes_ven, 
+      CONCAT(mov.codEmpresa, '') AS codi_rev, 
+      CONCAT(YEAR(mov.dataLancamento), '') AS ano_ven, 
+      CONCAT(MONTH(mov.dataLancamento), '') AS mes_ven, 
       "55" AS modl_ven, 
       itemNota.cfop AS oper_ven, 
       itemNota.cfop AS cfop_ven, 

@@ -8,7 +8,7 @@ export class CompaniesService {
   async findOne(id: number) {
     const select = `
     SELECT 
-      id as codi_rev, 
+      CONCAT(id, '') as codi_rev, 
       razaoSocial as raza_rev, 
       'RICAL' as fant_rev, 
       inscEstadual as inse_rev, 

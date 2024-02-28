@@ -351,11 +351,78 @@ export class ExtractAndInsertService {
 
     await this.selectAndInput(
       'notaFiscal',
-      `SELECT nota.id, nota.codEmpresa, nota.codEmpresa AS idEmitente, nota.codEmpresa AS codEmitente, STRING(nota.codEmpresa, "||", nota.codCliente) AS idDestinatario, nota.codCliente AS codDestinatario, TO_NUMBER(nota.codPedido) AS codPedido, nota.numero AS numero, nota.codSerie AS serie, chave.chaveAcesso AS chave, nota.codTipoDeNota AS idNatOperacao, nota.codTipoDeNota->tipoFinalNfe+1 AS codNatOperacao, nota.codTipoDeNota->descricao AS descNatOperacao,  %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS nomeNatOperacao, CASE WHEN nota.situacao=2 THEN 1 ELSE 0 END AS situacao, nota.dataEmissao, nota.dataEmissao AS dataEntrada FROM fat.notafiscal AS nota JOIN Fat.NotaFiscalComp2 AS chave ON chave.ID=nota.ID WHERE nota.codEmpresa IN (${this.empresas}) AND nota.codEmpresa IN (${listEmitente}) AND nota.numero IN (${listNota}) AND nota.codSerie IN (${listSerie})`,
+      `
+      SELECT nota.id, 
+        nota.codEmpresa, 
+        nota.codEmpresa AS idEmitente, 
+        nota.codEmpresa AS codEmitente, 
+        STRING(nota.codEmpresa, "||", nota.codCliente) AS idDestinatario, 
+        nota.codCliente AS codDestinatario, 
+        TO_NUMBER(nota.codPedido) AS codPedido, 
+        nota.numero AS numero, 
+        nota.codSerie AS serie, 
+        chave.chaveAcesso AS chave, 
+        nota.codTipoDeNota AS idNatOperacao, 
+        nota.codTipoDeNota->tipoFinalNfe+1 AS codNatOperacao, 
+        nota.codTipoDeNota->descricao AS descNatOperacao, 
+        %EXTERNAL(nota.codTipoDeNota->tipoFinalNfe) AS nomeNatOperacao, 
+        CASE WHEN nota.situacao=2 THEN 1 ELSE 0 END AS situacao, 
+        nota.dataEmissao, 
+        nota.dataEmissao AS dataEntrada 
+      FROM 
+        fat.notafiscal AS nota 
+      JOIN 
+        Fat.NotaFiscalComp2 AS chave 
+        ON chave.ID=nota.ID 
+      WHERE 
+        nota.codEmpresa IN (${this.empresas}) 
+      AND 
+        nota.codEmpresa IN (${listEmitente}) 
+      AND 
+        nota.numero IN (${listNota}) 
+      AND 
+        nota.codSerie IN (${listSerie})`,
     );
     await this.selectAndInput(
       'notaFiscal',
-      `SELECT nota.id, nota.codEmpresa, STRING(nota.codEmpresa, "||", nota.fornecedor) AS idEmitente, nota.fornecedor AS codEmitente, nota.codEmpresa AS idDestinatario, nota.codEmpresa AS codDestinatario, NULL AS codPedido, TO_NUMBER(nota.numDocumento) AS numero, nota.codSerie AS serie, STRING(chave.chavenfe) AS chave, NULL AS idNatOperacao, CASE WHEN nota.especieDocumento=2 THEN 1 WHEN nota.especieDocumento=3 THEN 4 WHEN nota.especieDocumento=7 THEN 2 ELSE nota.especieDocumento END AS codNatOperacao, nota.naturezaOperacao->nome AS descNatOperacao, %EXTERNAL(nota.especieDocumento) AS nomeNatOperacao, 1 AS situacao, nota.dataEmissao, nota.dataEntrada FROM est.notafiscalentrada AS nota JOIN est.NotaFiscalEntradaChavElet AS chave ON nota.codEmpresa=chave.codEmpresa AND nota.numDocumento=chave.numDocumento AND nota.codSerie=chave.codSerie AND nota.fornecedor=chave.fornecedor WHERE nota.codEmpresa IN (${this.empresas}) AND nota.fornecedor IN (${listEmitente}) AND TO_NUMBER(nota.numDocumento) IN (${listNota}) AND nota.codSerie IN (${listSerie})`,
+      `
+      SELECT nota.id, 
+        nota.codEmpresa, 
+        STRING(nota.codEmpresa, "||", nota.fornecedor) AS idEmitente, 
+        nota.fornecedor AS codEmitente, 
+        nota.codEmpresa AS idDestinatario, 
+        nota.codEmpresa AS codDestinatario, 
+        NULL AS codPedido, 
+        TO_NUMBER(nota.numDocumento) AS numero, 
+        nota.codSerie AS serie, 
+        STRING(chave.chavenfe) AS chave, 
+        NULL AS idNatOperacao, 
+        CASE WHEN nota.especieDocumento=2 THEN 1 WHEN nota.especieDocumento=3 THEN 4 WHEN nota.especieDocumento=7 THEN 2 ELSE nota.especieDocumento END AS codNatOperacao, 
+        nota.naturezaOperacao->nome AS descNatOperacao, 
+        %EXTERNAL(nota.especieDocumento) AS nomeNatOperacao, 
+        1 AS situacao, 
+        nota.dataEmissao, 
+        nota.dataEntrada 
+      FROM 
+        est.notafiscalentrada AS nota 
+      JOIN 
+        est.NotaFiscalEntradaChavElet AS chave 
+        ON 
+        nota.codEmpresa=chave.codEmpresa 
+        AND 
+        nota.numDocumento=chave.numDocumento 
+        AND 
+        nota.codSerie=chave.codSerie 
+        AND 
+        nota.fornecedor=chave.fornecedor 
+      WHERE 
+        nota.codEmpresa IN (${this.empresas}) 
+      AND 
+        nota.fornecedor IN (${listEmitente}) 
+      AND 
+        TO_NUMBER(nota.numDocumento) IN (${listNota}) 
+      AND 
+        nota.codSerie IN (${listSerie})`,
     );
   }
   async extractNotaDevolucao() {
@@ -420,31 +487,123 @@ export class ExtractAndInsertService {
 
     await this.selectAndInput(
       'cliente_empresa',
-      `SELECT cliente.id AS id, cliente.codCliente AS codigo, cliente.codEmpresa, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.cnpjCpf END) AS cnpjCpf, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(cliente.inscEstadual, "ISENTO") END) AS inscEstadual, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.nome END) AS razaoSocial, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(cliente.fantasia, "") END) AS nomeFantasia, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.cep END) AS cep, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.endereco END) AS endereco, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE %EXTERNAL(cliente.enderecoNumero) END) AS numeroEndereco, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.bairro END) AS bairro, cliente.nomeCidade AS cidade, cliente.nomeEstado AS estado, ibge.codIBGE AS codigoIbge, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(compl.telefone, compl.fax, "NAOINFO") END) AS telefone, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(compl.telexCelular, "NAOINFO") END) AS celular, (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.email END) AS email, %ODBCOUT(COALESCE(cliente.dataAlterSituacao, compl2.dataAlter, DATE("2000-01-01"))) AS dataRegistro, (CASE wHEN cliente.situacao=1 THEN 1 ELSE 0 END) AS situacao, "C" AS tipoCadastro FROM fat.cliente AS cliente JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(cliente.cep,1,5) JOIN Fat.CliComplemento2 AS compl ON cliente.ID=compl.ID JOIN Fat.CliComplemento3 AS compl2 ON cliente.id=compl2.ID WHERE cliente.id IN (${listCostumers})`,
+      `
+      SELECT 
+        cliente.id AS id, 
+        cliente.codCliente AS codigo, 
+        cliente.codEmpresa, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.cnpjCpf END) AS cnpjCpf, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(cliente.inscEstadual, "ISENTO") END) AS inscEstadual, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.nome END) AS razaoSocial, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(cliente.fantasia, "") END) AS nomeFantasia, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.cep END) AS cep, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.endereco END) AS endereco, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE %EXTERNAL(cliente.enderecoNumero) END) AS numeroEndereco, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.bairro END) AS bairro, 
+        cliente.nomeCidade AS cidade, 
+        cliente.nomeEstado AS estado, 
+        ibge.codIBGE AS codigoIbge, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(compl.telefone, compl.fax, "NAOINFO") END) AS telefone, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(compl.telexCelular, "NAOINFO") END) AS celular, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.email END) AS email, 
+        %ODBCOUT(COALESCE(cliente.dataAlterSituacao, compl2.dataAlter, DATE("2000-01-01"))) AS dataRegistro, 
+        (CASE wHEN cliente.situacao=1 THEN 1 ELSE 0 END) AS situacao, 
+        "C" AS tipoCadastro 
+      FROM 
+        fat.cliente AS cliente 
+      JOIN 
+        cad.cidade AS ibge 
+        ON ibge.ID=SUBSTRING(cliente.cep,1,5) 
+      JOIN 
+        Fat.CliComplemento2 AS compl 
+        ON cliente.ID=compl.ID 
+      JOIN 
+        Fat.CliComplemento3 AS compl2 
+        ON cliente.id=compl2.ID 
+      WHERE 
+        cliente.id IN (${listCostumers})`,
     );
     await this.selectAndInput(
       'cliente_empresa',
-      `SELECT empresa.id AS id, empresa.id AS codigo, 1 AS codEmpresa, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, COALESCE(empresa.telefone, "NAOINFO") AS telefone, "69 99233-6880" AS celular, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao, "E" AS tipoCadastro FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5) WHERE empresa.id IN (${listCostumers}) `,
+      `SELECT empresa.id AS id, empresa.id AS codigo, 1 AS codEmpresa, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, COALESCE(empresa.telefone, "NAOINFO") AS telefone, "69 99233-6880" AS celular, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao, "E" AS tipoCadastro FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5) WHERE empresa.id IN (${listCostumers})`,
     );
   }
   async extractCompany() {
     await this.selectAndInput(
       'empresa',
-      'SELECT empresa.id AS id, empresa.cnpjCpf AS cnpjCpf, inscEstadual AS inscEstadual, empresa.nome AS razaoSocial, COALESCE(empresa.fantasia, "") AS nomeFantasia, empresa.cep AS cep, empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco, empresa.bairro, empresa.nomeCidade AS cidade, empresa.estado, ibge.codIBGE AS codigoIbge, empresa.telefone, "sac@rical.com.br" AS email, COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro, empresa.situacao AS situacao FROM cad.empresa AS empresa JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(empresa.cep,1,5)',
+      `SELECT empresa.id AS id,
+        empresa.cnpjCpf AS cnpjCpf,
+        inscEstadual AS inscEstadual,
+        empresa.nome AS razaoSocial,
+        COALESCE(empresa.fantasia, "") AS nomeFantasia,
+        empresa.cep AS cep,
+        empresa.endereco, %EXTERNAL(empresa.numEmpLogradouro) AS numeroEndereco,
+        empresa.bairro, empresa.nomeCidade AS cidade,
+        empresa.estado, ibge.codIBGE AS codigoIbge,
+        empresa.telefone, "sac@rical.com.br" AS email,
+        COALESCE(empresa.dataRegistro, DATE("2000-01-01")) AS dataRegistro,
+        empresa.situacao AS situacao 
+      FROM 
+        cad.empresa AS empresa 
+      JOIN 
+        cad.cidade AS ibge 
+        ON ibge.ID=SUBSTRING(empresa.cep,1,5)`,
     );
   }
   async extractSupplier() {
     const listSupplier = await this.getListSupplierMysql();
     await this.selectAndInput(
       'fornecedor',
-      `SELECT fornecedor.id AS id, fornecedor.codigo, fornecedor.codEmpresa, fornecedor.cnpjCpf AS cnpjCpf, fornecedor.inscEstadual, fornecedor.nome AS razaoSocial, COALESCE(fornecedor.fantasia, "") AS nomeFantasia, fornecedor.cep AS cep, fornecedor.endereco, fornecedor.nroEndereco AS numeroEndereco, fornecedor.bairro, fornecedor.nomeCidade AS cidade, fornecedor.siglaEstado AS estado, ibge.codIBGE AS codigoIbge, COALESCE(fornecedor.telefone, fornecedor.telefone1) AS telefone, fornecedor.email, COALESCE(fornecedor.dataSituacao, DATE("2000-01-01")) AS dataRegistro FROM cpg.fornecedor AS fornecedor JOIN cad.cidade AS ibge ON ibge.ID=SUBSTRING(fornecedor.cep,1,5) WHERE fornecedor.id IN (${listSupplier})`,
+      `
+      SELECT fornecedor.id AS id, 
+        fornecedor.codigo AS codigo, 
+        fornecedor.codEmpresa AS codEmpresa, 
+        fornecedor.cnpjCpf AS cnpjCpf, 
+        fornecedor.inscEstadual inscEstadual, 
+        fornecedor.nome AS razaoSocial, 
+        COALESCE(fornecedor.fantasia, "") AS nomeFantasia, 
+        fornecedor.cep AS cep, 
+        fornecedor.endereco AS endereco, 
+        fornecedor.nroEndereco AS numeroEndereco, 
+        fornecedor.bairro AS bairro, 
+        fornecedor.nomeCidade AS cidade, 
+        fornecedor.siglaEstado AS estado, 
+        ibge.codIBGE AS codigoIbge, 
+        COALESCE(fornecedor.telefone, fornecedor.telefone1) AS telefone, 
+        fornecedor.email AS email, 
+        COALESCE(fornecedor.dataSituacao, DATE("2000-01-01")) AS dataRegistro 
+      FROM 
+        cpg.fornecedor AS fornecedor 
+      JOIN 
+        cad.cidade AS ibge 
+        ON ibge.ID=SUBSTRING(fornecedor.cep,1,5) 
+      WHERE 
+        fornecedor.id IN (${listSupplier})`,
     );
   }
   async extractTransaction() {
     const listItens = await this.getListItensMysql();
     await this.selectAndInputMov(
       'movimentacao',
-      `SELECT id AS id, numDocto, codEmpresa, (CASE WHEN codFornecNota!="" THEN STRING(codEmpresa, "||", codFornecNota) ELSE codEmpresa END) AS idFornecedor, COALESCE(codFornecNota, codEmpresa) AS codFornecedor, codItem, codNatureza1 AS codNatureza, dataLcto AS dataLancamento, (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, qtdMovto AS qtdItem, vlrUnitario, serieFiscal FROM est.movimento WHERE codNatureza1=8 AND codItem IN (${listItens})`,
+      `
+      SELECT 
+        id AS id, 
+        numDocto, 
+        codEmpresa, 
+        (CASE WHEN codFornecNota!="" THEN STRING(codEmpresa, "||", codFornecNota) ELSE codEmpresa END) AS idFornecedor, 
+        COALESCE(codFornecNota, codEmpresa) AS codFornecedor, 
+        codItem, codNatureza1 AS codNatureza, 
+        dataLcto AS dataLancamento, 
+        (CASE WHEN operacao1="+" THEN 1 ELSE 0 END) AS operacao, 
+        qtdMovto AS qtdItem, 
+        vlrUnitario AS vlrUnitario, 
+        serieFiscal AS serieFiscal 
+      FROM 
+        est.movimento 
+      WHERE 
+        codNatureza1=8 
+      AND 
+        codItem IN (${listItens})`,
     );
   }
   async extractNaturezaOperacao() {
@@ -455,7 +614,7 @@ export class ExtractAndInsertService {
   }
 
   onModuleInit() {
-    this.processData();
+    // this.processData();
   }
 
   // Cron de Segunda a Sabado entre as 7h e 19h a cada 2 horas

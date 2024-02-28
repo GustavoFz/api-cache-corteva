@@ -10,8 +10,8 @@ export class CustomersService {
 
     const select = `
     SELECT 
-      codEmpresa AS codi_rev,
-      codigo AS codi_cli,
+      CONCAT(codEmpresa, '') AS codi_rev,
+      CONCAT(codigo, '') AS codi_cli,
       cnpjCpf AS cnpj_cli,
       inscEstadual AS insc_cli,
       razaoSocial AS nome_cli,
@@ -31,6 +31,8 @@ export class CustomersService {
       cliente_empresa
     WHERE 
       codEmpresa=${id}
+    AND
+      codigo!=${id}
     `;
 
     return await this.db.mysqlSelect(select);
