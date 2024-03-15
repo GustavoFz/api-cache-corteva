@@ -41,14 +41,6 @@ export class DbService {
       await connection.query(query);
     connection.end();
 
-    results.map((object) => {
-      for (const prop in object) {
-        if (object[prop] === null) {
-          object[prop] = 'null';
-        }
-      }
-      return object;
-    });
     return results;
   }
 }

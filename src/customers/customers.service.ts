@@ -22,8 +22,8 @@ export class CustomersService {
       cep AS cepc_cli,
       codigoIbge AS muni_cli,
       telefone AS tele_cli,
-      null AS tel2_cli,
-      null AS celu_cli,
+      celular AS tel2_cli,
+      celular AS celu_cli,
       email AS emai_cli,
       DATE_FORMAT(dataRegistro, "%Y-%m-%d") AS duma_cli,
       null AS dnac_cli 

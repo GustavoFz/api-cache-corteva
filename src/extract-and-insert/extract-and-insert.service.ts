@@ -1,10 +1,14 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { DbService } from '../db/db.service';
 
 @Injectable()
 export class ExtractAndInsertService {
-  constructor(private db: DbService) {}
+  constructor(
+    private env: ConfigService,
+    private db: DbService,
+  ) {}
   private empresas = [1, 2];
   private produtosCorteva = [
     'ACAPELA',
@@ -197,6 +201,7 @@ export class ExtractAndInsertService {
     '39269090',
     '44219900',
   ];
+  private dataInicio = this.env.get<string>('DATA_INICIO');
 
   async selectAndInput(tableInput: any, select: any) {
     try {
@@ -204,16 +209,22 @@ export class ExtractAndInsertService {
 
       console.log(`Consulta realizada com sucesso na tabela ${tableInput}`);
 
-      const columns = Object.keys(rows[0]);
-      const values = rows.map((row: any) =>
-        columns.map((column) => row[column]),
-      );
+      if (rows.length != 0) {
+        const columns = Object.keys(rows[0]);
+        const values = rows.map((row: any) =>
+          columns.map((column) => row[column]),
+        );
 
-      await this.db.mysql(
-        `REPLACE INTO ${tableInput} (${columns.join(',')}) VALUES ?`,
-        [values],
-      );
-      console.log(`Inserção realizada com sucesso na tabela ${tableInput}`);
+        await this.db.mysql(
+          `REPLACE INTO ${tableInput} (${columns.join(',')}) VALUES ?`,
+          [values],
+        );
+        console.log(`Inserção realizada com sucesso na tabela ${tableInput}`);
+      } else {
+        console.log(
+          `Inserção não realizada na tabela ${tableInput}, pois consulta vazia`,
+        );
+      }
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException();
@@ -339,11 +350,11 @@ export class ExtractAndInsertService {
     const listItens = await this.getListItensMysql();
     await this.selectAndInput(
       'itemNotaFiscal',
-      `SELECT item.id, item.codEmpresa AS idEmpresa, item.codEmpresa AS idEmitente, item.codEmpresa AS codEmitente, TO_NUMBER(item.numero) AS numeroNota, 1 AS serieNota, item.codProduto AS codigo, item.vlrItem AS vlrCustoEntradaUnitario, item.precoUnitarioFloat AS vlrUnitario, item.vlrItem AS vlrTotal, item.qtdeFaturada AS qtd, item.codNatOperacao AS cfop, item.vlrDesconto, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, 0 AS vlrIpi, "S" AS tipoNota, item.dataEmissao, item.dataEmissao AS dataEntrada FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codProduto IN (${listItens})`,
+      `SELECT item.id, item.codEmpresa AS idEmpresa, item.codEmpresa AS idEmitente, item.codEmpresa AS codEmitente, TO_NUMBER(item.numero) AS numeroNota, 1 AS serieNota, item.codProduto AS codigo, item.vlrItem AS vlrCustoEntradaUnitario, item.precoUnitarioFloat AS vlrUnitario, item.vlrItem AS vlrTotal, item.qtdeFaturada AS qtd, item.codNatOperacao AS cfop, item.vlrDesconto, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, 0 AS vlrIpi, "S" AS tipoNota, item.dataEmissao, item.dataEmissao AS dataEntrada FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codProduto IN (${listItens}) AND item.dataEmissao>=DATE('${this.dataInicio}')`,
     );
     await this.selectAndInput(
       'itemNotaFiscal',
-      `SELECT item.id, item.codEmpresa AS idEmpresa, STRING(item.codEmpresa, "||", item.codFornecedor) AS idEmitente, item.codFornecedor AS codEmitente, TO_NUMBER(item.numDocumento) AS numeroNota, item.codSerie AS serieNota, TO_NUMBER(item.codMaterial) AS codigo, item.custoEntrada AS vlrCustoEntradaUnitario, CAST((item.valorTotalItem/item.quantidade) AS NUMERIC(18,4)) AS vlrUnitario, item.valorTotalItem AS vlrTotal, item.quantidade AS qtd, item.naturezaOperacao AS cfop, 0 AS vlrDesconto, item.ValorCOFINS AS vlrCofins, item.valorICMS AS vlrIcms, item.valorPisPasepRec AS vlrPis, 0 AS vlrTributoNfc, item.valorIPI AS vlrIpi, "E" AS tipoNota, null AS dataEmissao, item.dataEntrada FROM est.NotaFiscalEntradaItens AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codMaterial IN (${listItens})`,
+      `SELECT item.id, item.codEmpresa AS idEmpresa, STRING(item.codEmpresa, "||", item.codFornecedor) AS idEmitente, item.codFornecedor AS codEmitente, TO_NUMBER(item.numDocumento) AS numeroNota, item.codSerie AS serieNota, TO_NUMBER(item.codMaterial) AS codigo, item.custoEntrada AS vlrCustoEntradaUnitario, CAST((item.valorTotalItem/item.quantidade) AS NUMERIC(18,4)) AS vlrUnitario, item.valorTotalItem AS vlrTotal, item.quantidade AS qtd, item.naturezaOperacao AS cfop, 0 AS vlrDesconto, item.ValorCOFINS AS vlrCofins, item.valorICMS AS vlrIcms, item.valorPisPasepRec AS vlrPis, 0 AS vlrTributoNfc, item.valorIPI AS vlrIpi, "E" AS tipoNota, null AS dataEmissao, item.dataEntrada FROM est.NotaFiscalEntradaItens AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codMaterial IN (${listItens}) AND item.dataEntrada>=DATE('${this.dataInicio}')`,
     );
   }
   async extractNota() {
@@ -381,7 +392,10 @@ export class ExtractAndInsertService {
       AND 
         nota.numero IN (${listNota}) 
       AND 
-        nota.codSerie IN (${listSerie})`,
+        nota.codSerie IN (${listSerie})
+      AND 
+        nota.dataEmissao>=DATE('${this.dataInicio}')
+      `,
     );
     await this.selectAndInput(
       'notaFiscal',
@@ -422,7 +436,10 @@ export class ExtractAndInsertService {
       AND 
         TO_NUMBER(nota.numDocumento) IN (${listNota}) 
       AND 
-        nota.codSerie IN (${listSerie})`,
+        nota.codSerie IN (${listSerie})
+      AND
+        nota.dataEmissao>=DATE('${this.dataInicio}')  
+      `,
     );
   }
   async extractNotaDevolucao() {
@@ -456,8 +473,12 @@ export class ExtractAndInsertService {
         AND nfe.fornecedor=nf.codCliente 
       WHERE 
         nfd.numeroNota IN (${listNota})
-        AND nfe.codSerie IN (${listSerie})
-        AND nfe.dataEmissao=nfd.dataDevolucao
+      AND 
+        nfe.codSerie IN (${listSerie})
+      AND 
+        nfe.dataEmissao=nfd.dataDevolucao
+      AND
+        nfd.dataEmissao>=DATE('${this.dataInicio}')
       `,
     );
     await this.selectAndInput(
@@ -478,8 +499,11 @@ export class ExtractAndInsertService {
         fat.notafiscalReferenciadaEntrada
       WHERE 
         numDocumento IN (${listNota})
-        AND codSerie IN (${listSerie})
-      `,
+      AND 
+        codSerie IN (${listSerie})
+      AND  
+        dataEmissao>=DATE('${this.dataInicio}')
+        `,
     );
   }
   async extractCustomer() {
@@ -505,7 +529,7 @@ export class ExtractAndInsertService {
         ibge.codIBGE AS codigoIbge, 
         (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(compl.telefone, compl.fax, "NAOINFO") END) AS telefone, 
         (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(compl.telexCelular, "NAOINFO") END) AS celular, 
-        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE cliente.email END) AS email, 
+        (CASE WHEN LENGTH(cliente.cnpjCpf)=11 THEN "LGPD" ELSE COALESCE(cliente.email, "NAOINFO") END) AS email, 
         %ODBCOUT(COALESCE(cliente.dataAlterSituacao, compl2.dataAlter, DATE("2000-01-01"))) AS dataRegistro, 
         (CASE wHEN cliente.situacao=1 THEN 1 ELSE 0 END) AS situacao, 
         "C" AS tipoCadastro 
@@ -614,7 +638,7 @@ export class ExtractAndInsertService {
   }
 
   onModuleInit() {
-    // this.processData();
+    this.processData();
   }
 
   // Cron de Segunda a Sabado entre as 7h e 19h a cada 2 horas
