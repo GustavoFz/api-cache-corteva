@@ -23,8 +23,8 @@ export class StocksService {
         null AS lote_pro,
         GREATEST(SUM(CASE WHEN operacao = 0 THEN -mov.qtdItem ELSE mov.qtdItem END), 0, 0) AS qtde_prod, 
         GREATEST(SUM(CASE WHEN operacao = 0 THEN -mov.qtdItem ELSE mov.qtdItem END), 0, 0) AS qtdi_pro, 
-        '0' AS qttr_pro, 
-        '0' AS qtbl_pro, 
+        '0.000' AS qttr_pro, 
+        '0.000' AS qtbl_pro, 
         null AS trat_pro, 
         item.tipo AS fsem_pro 
       FROM 
