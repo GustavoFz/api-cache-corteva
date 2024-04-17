@@ -12,9 +12,9 @@
 
 ## Settings
 
-1 - Copie o arquivo odbc.ini-example para odbc.ini e preencha conforme as configurações do seu banco cache. 
-2 - Copie o arquivo .env-example para .env e preencha as variaveis de ambiente
-3 - Verifique se a versão do drive ODBC na raiz do projeto é compativel com o seu banco de dados, caso não sejá, adicione o novo drive e altere o arquivo Dockerfile na linha 14 para o novo arquivo.
+1. Copie o arquivo odbc.ini-example para odbc.ini e preencha conforme as configurações do seu banco cache. 
+2. Copie o arquivo .env-example para .env e preencha as variaveis de ambiente
+3. Verifique se a versão do drive ODBC na raiz do projeto é compativel com o seu banco de dados, caso não sejá, adicione o novo drive e altere o arquivo Dockerfile na linha 14 para o novo arquivo.
 
 ## Running the app
 
