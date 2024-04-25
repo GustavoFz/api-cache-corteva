@@ -7,7 +7,6 @@ export class ValidatorDate implements PipeTransform<any> {
     const r = /^\d{4}-\d{2}-\d{2}$/;
 
     if (!date) {
-      console.log('sss');
       throw new BadRequestException(
         'Both dateStart and dateEnd are required if specified.',
       );
