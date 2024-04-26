@@ -33,7 +33,7 @@ export class StocksService {
         movimentacao AS mov
       RIGHT JOIN 
         item
-          ON item.id=mov.codItem
+          ON mov.codItem=item.id
       WHERE 
         codEmpresa=${id} AND item.marca="CORTEVA" 
       GROUP BY 
