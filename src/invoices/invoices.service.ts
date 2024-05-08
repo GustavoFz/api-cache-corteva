@@ -45,17 +45,13 @@ export class InvoicesService {
       null AS lote_ivn,
       item.tipo AS fsem_pro,
       null AS trat_pro,
-      itemNota.vlrCofins + itemNota.vlrIcms + itemNota.vlrPis + itemNota.vlrTributoNfc AS trib_ivn,
+      CONVERT(itemNota.vlrCofins + itemNota.vlrIcms + itemNota.vlrPis, DECIMAL(18,4)) AS trib_ivn,
       null AS cond_cul,
       null AS desc_cul,
       null AS crec_inv,
       null AS drec_ivn,
-      itemNota.vlrTotal AS pbru_ivn,
-      CONVERT(itemNota.vlrTotal - (itemNota.vlrDesconto + itemNota.vlrCofins + itemNota.vlrIcms + itemNota.vlrPis + itemNota.vlrTributoNfc) /(
-      SELECT 
-          COUNT(ID) 
-          FROM movimentacao 
-              WHERE movimentacao.codEmpresa = nota.codEmpresa AND movimentacao.numeroNota = nota.numero AND movimentacao.serieFiscal = nota.serie), DECIMAL(18,4)) 
+      CONVERT(itemNota.vlrTotal, DECIMAL(18,4)) AS pbru_ivn,
+      CONVERT(itemNota.vlrTotal - (itemNota.vlrDesconto + itemNota.vlrCofins + itemNota.vlrIcms + itemNota.vlrPis), DECIMAL(18,4)) 
       AS pliq_ivn,
       itemNota.qtd AS qtde_ivn,
       null AS codi_ved,
@@ -98,7 +94,7 @@ export class InvoicesService {
        ON itemNota.cfop=nat.id
       LEFT JOIN notaFiscalDevolucao AS nfd
        ON nfd.idEmpresa=nota.codEmpresa AND nfd.notaDevolucao=nota.numero
-      WHERE mov.codEmpresa=${id} AND item.marca="CORTEVA" AND dataLancamento BETWEEN '${dateStart}' AND '${dateEnd}'
+      WHERE mov.codEmpresa=${id} AND item.marca="CORTEVA" AND nota.dataEmissao BETWEEN '${dateStart}' AND '${dateEnd}'
     `);
     return data;
   }
