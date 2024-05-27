@@ -12,8 +12,8 @@ export class BillingsService {
     const select = `
     SELECT 
       CONCAT(mov.codEmpresa, '') AS codi_rev, 
-      CONCAT(YEAR(mov.dataLancamento), '') AS ano_ven, 
-      CONCAT(MONTH(mov.dataLancamento), '') AS mes_ven, 
+      CONCAT(YEAR(nota.dataEmissao), '') AS ano_ven, 
+      CONCAT(MONTH(nota.dataEmissao), '') AS mes_ven, 
       "55" AS modl_ven, 
       itemNota.cfop AS oper_ven, 
       itemNota.cfop AS cfop_ven, 
@@ -31,7 +31,7 @@ export class BillingsService {
         ON mov.numeroNota=nota.numero AND mov.codEmpresa=nota.codEmpresa AND mov.serieFiscal=nota.serie AND mov.idFornecedor=nota.idEmitente
     JOIN 
       itemNotaFiscal AS itemNota 
-        ON itemNota.codigo=mov.codItem AND itemNota.numeroNota=mov.numeroNota AND itemNota.idEmpresa=mov.codEmpresa AND mov.idFornecedor=itemNota.idEmitente 
+        ON itemNota.codigo=mov.codItem AND itemNota.numeroNota=mov.numeroNota AND itemNota.idEmpresa=mov.codEmpresa AND mov.idFornecedor=itemNota.idEmitente AND mov.qtdItem=itemNota.qtd
     JOIN 
       naturezaOperacao AS nat
         ON itemNota.cfop=nat.id
@@ -39,7 +39,7 @@ export class BillingsService {
       item
         ON itemNota.codigo=item.id
     WHERE 
-      mov.codEmpresa=${id} AND mov.dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" 
+      mov.codEmpresa=${id} AND nota.dataEmissao BETWEEN "${dateStart}" AND "${dateEnd}" 
     GROUP BY 
       codi_rev, mes_ven, ano_ven, oper_ven, cfop_ven, desc_opr, sina_opr, ncmp_pro ORDER BY mov.datalancamento DESC
     `;
