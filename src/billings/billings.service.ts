@@ -20,10 +20,10 @@ export class BillingsService {
       nat.nome AS desc_opr, 
       item.ncm AS ncmp_pro, 
       IF(mov.operacao=0, "S", "E") AS sina_opr, 
-      CONVERT(CASE WHEN itemNota.cfop=5152 THEN itemNota.vlrTotal ELSE 0 END, DECIMAL(18,4)) AS valf_ven, 
-      CASE WHEN itemNota.cfop=5152 THEN itemNota.qtd ELSE 0 END AS volf_ven,
-      CONVERT(CASE WHEN itemNota.cfop!=5152 THEN itemNota.vlrTotal ELSE 0 END, DECIMAL(18,4)) AS volu_ven,
-      CASE WHEN itemNota.cfop!=5152 THEN itemNota.qtd ELSE 0 END AS volr_ven      
+      CONVERT(SUM(CASE WHEN itemNota.cfop=5152 THEN itemNota.vlrTotal ELSE 0 END), DECIMAL(18,4)) AS valf_ven, 
+      SUM(CASE WHEN itemNota.cfop=5152 THEN itemNota.qtd ELSE 0 END) AS volf_ven,
+      CONVERT(SUM(CASE WHEN itemNota.cfop!=5152 THEN itemNota.vlrTotal ELSE 0 END), DECIMAL(18,4)) AS volu_ven,
+      SUM(CASE WHEN itemNota.cfop!=5152 THEN itemNota.qtd ELSE 0 END) AS volr_ven      
     FROM 
       movimentacao AS mov
     JOIN 

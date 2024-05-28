@@ -83,7 +83,7 @@ export class InvoicesService {
       JOIN notaFiscal AS nota
        ON mov.numeroNota=nota.numero AND mov.codEmpresa=nota.codEmpresa AND mov.serieFiscal=nota.serie AND mov.idFornecedor=nota.idEmitente
       JOIN itemNotaFiscal AS itemNota
-       ON itemNota.codigo=mov.codItem AND itemNota.numeroNota=mov.numeroNota AND itemNota.idEmpresa=mov.codEmpresa AND mov.idFornecedor=itemNota.idEmitente
+       ON itemNota.codigo=mov.codItem AND itemNota.numeroNota=mov.numeroNota AND itemNota.idEmpresa=mov.codEmpresa AND mov.idFornecedor=itemNota.idEmitente AND mov.qtdItem = itemNota.qtd
       JOIN item
        ON item.id=itemNota.codigo
       JOIN cliente_empresa AS cliente 
