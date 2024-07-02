@@ -4,11 +4,11 @@ name: db-api-corteva-dev
 
 services:
   db:
-    image: mysql:latest
+    image: mysql:8.4.0
     command: mysqld --sql_mode="STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_AUTO_VALUE_ON_ZERO"
     restart: always
     env_file:
-      - .env.development
+      - development.env
     environment:
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
       MYSQL_USER: "${MYSQL_USERNAME}"
@@ -30,7 +30,7 @@ services:
     image: phpmyadmin/phpmyadmin:latest
     restart: always
     env_file:
-      - .env.development
+      - development.env
     environment:
       PMA_HOST: db
       MYSQL_USER: "${MYSQL_USERNAME}"
