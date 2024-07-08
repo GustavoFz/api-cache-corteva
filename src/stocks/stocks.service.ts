@@ -33,7 +33,7 @@ export class StocksService {
         item
           ON item.id=mov.codItem
       WHERE 
-        codEmpresa=${id} AND item.marca="CORTEVA" AND dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" 
+        codEmpresa=${id} AND dataLancamento BETWEEN "${dateStart}" AND "${dateEnd}" 
       GROUP BY 
         mov.codItem 
       ORDER BY 

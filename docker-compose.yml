@@ -1,10 +1,10 @@
-version: '3.7'
+version: '3.8'
 
-name: api-corteva
+name: api-agrichen
 
 services:
   api:
-    image: api-corteva
+    image: api-agrichen
     build:
       context: .
       dockerfile: Dockerfile_Production
@@ -13,9 +13,9 @@ services:
       db:
         condition: service_healthy
     ports:
-      - '3000:3000'
+      - '3006:3000'
     networks:
-      - corteva-network
+      - agrichen-network
 
   db:
     image: mysql:latest
@@ -23,7 +23,7 @@ services:
     restart: always
     environment:
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
-      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_USER: "${MYSQL_USERNAME}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
     healthcheck:
@@ -33,10 +33,10 @@ services:
     ports:
       - '3306:3306'
     volumes:
-      - mysql_volume:/var/lib/mysql
+      - agrichen_mysql_volume:/var/lib/mysql
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - corteva-network
+      - agrichen-network
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
@@ -50,11 +50,11 @@ services:
     ports:
       - '8080:80'
     networks:
-      - corteva-network
+      - agrichen-network
       
 networks:
-  corteva-network:
+  agrichen-network:
     driver: bridge
 
 volumes:
-  mysql_volume:
+  agrichen_mysql_volume:

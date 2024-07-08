@@ -98,7 +98,7 @@ export class InvoicesService {
        ON itemNota.cfop=nat.id
       LEFT JOIN notaFiscalDevolucao AS nfd
        ON nfd.idEmpresa=nota.codEmpresa AND nfd.notaDevolucao=nota.numero
-      WHERE mov.codEmpresa=${id} AND item.marca="CORTEVA" AND dataLancamento BETWEEN '${dateStart}' AND '${dateEnd}'
+      WHERE mov.codEmpresa=${id} AND dataLancamento BETWEEN '${dateStart}' AND '${dateEnd}'
     `);
     return data;
   }

@@ -1,207 +1,17 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+
 import { Cron } from '@nestjs/schedule';
 import { DbService } from '../db/db.service';
 
 @Injectable()
 export class ExtractAndInsertService {
-  constructor(
-    private env: ConfigService,
-    private db: DbService,
-  ) {}
+  constructor(private db: DbService) {}
   private empresas = [1, 2];
-  private produtosCorteva = [
-    'ACAPELA',
-    'ACCENT',
-    'APROACH',
-    'ARIGO',
-    'BIM',
-    'BIM MAX',
-    'BLUEN',
-    'BOAVIN',
-    'BROADWAY',
-    'CITADEL',
-    'CLASSIC',
-    'CLINCHER',
-    'CLOSER',
-    'COACT',
-    'CONTRAST',
-    'CURATHANE',
-    'CURAVIAL',
-    'CURZATE',
-    'DELEGATE',
-    'DERMACOR',
-    'DISPAROULTRA',
-    'DITHANE',
-    'DMA',
-    'DOMINUM',
-    'DONTOR',
-    'DORIAN',
-    'EMPEROR',
-    'ENLIST',
-    'EQUATION',
-    'EXALT',
-    'EXPEDITION',
-    'FERPI',
-    'FONTELIS',
-    'FORE',
-    'FRONT',
-    'GALAVIO',
-    'GALLERY',
-    'GARLON',
-    'GARTREL',
-    'GLIZMAX',
-    'GOAL',
-    'HECTOR',
-    'INLAYON',
-    'INSTINCT',
-    'INTREPID',
-    'JAGUAR',
-    'KARATHANE STAR',
-    'KERB FLO',
-    'KOCIDE',
-    'LANNATE',
-    'LOYANT',
-    'LUMIALZA',
-    'MIDAS',
-    'MISSIL',
-    'OMSUGO',
-    'ORANIS',
-    'OUTLINER',
-    'PACTO',
-    'PADRON',
-    'PALACEULTRA',
-    'PANORAMIC',
-    'PAXEO',
-    'PIXXARO',
-    'PLANADORXT',
-    'PULSOR',
-    'QUELEX',
-    'RADIANT',
-    'RASTER',
-    'RELICTA',
-    'REVOLUX',
-    'RICER',
-    'SAVEY',
-    'SCORPION',
-    'SECTOR',
-    'SPIDER',
-    'SPINDLE',
-    'SPINTOR',
-    'STOPPER',
-    'STOPPERXT',
-    'SUCCESS',
-    'SULLICA',
-    'TALENDO',
-    'TEZPETIX',
-    'TITUS',
-    'TORCHA',
-    'TORDON',
-    'TRACER',
-    'TRICEA',
-    'TRONADORULTRA',
-    'TRUENO',
-    'TRUPER',
-    'UTRISHA',
-    'VERDICT',
-    'VERTER',
-    'VESSARYA',
-    'VIOVAN',
-    'VIVOLT',
-    'VOLCANE',
-    'ZORVEC',
+  private produtosAgrichen = [
+    11859, 13196, 15139, 13858, 13995, 13996, 14157, 15141, 15496, 13262, 15142,
+    15111, 15143, 15108, 15140, 14684, 15144, 14156, 13699, 13698, 13444, 13447,
+    13448, 15225, 15497, 13993, 13994, 14755, 11858, 13197, 14756, 15224,
   ];
-  private ncmCorteva = [
-    '10011100',
-    '10011900',
-    '10019100',
-    '10019900',
-    '10051000',
-    '10059010',
-    '10059090',
-    '10070010',
-    '10071000',
-    '10079000',
-    '12010010',
-    '12011000',
-    '12019000',
-    '12072100',
-    '12072900',
-    '29333919',
-    '30029000',
-    '34029029',
-    '38081029',
-    '38082029',
-    '38083021',
-    '38083029',
-    '38085010',
-    '38085021',
-    '38085029',
-    '38086290',
-    '38089029',
-    '38089110',
-    '38089111',
-    '38089119',
-    '38089120',
-    '38089191',
-    '38089192',
-    '38089193',
-    '38089194',
-    '38089195',
-    '38089196',
-    '38089197',
-    '38089198',
-    '38089199',
-    '38089211',
-    '38089219',
-    '38089220',
-    '38089291',
-    '38089292',
-    '38089293',
-    '38089294',
-    '38089295',
-    '38089296',
-    '38089297',
-    '38089299',
-    '38089311',
-    '38089319',
-    '38089321',
-    '38089322',
-    '38089323',
-    '38089324',
-    '38089325',
-    '38089326',
-    '38089327',
-    '38089328',
-    '38089329',
-    '38089331',
-    '38089332',
-    '38089333',
-    '38089341',
-    '38089349',
-    '38089351',
-    '38089352',
-    '38089359',
-    '38089411',
-    '38089419',
-    '38089421',
-    '38089422',
-    '38089429',
-    '38089911',
-    '38089919',
-    '38089920',
-    '38089991',
-    '38089992',
-    '38089993',
-    '38089994',
-    '38089995',
-    '38089996',
-    '38089999',
-    '38249929',
-    '39269090',
-    '44219900',
-  ];
-  private dataInicio = this.env.get<string>('DATA_INICIO');
 
   async selectAndInput(tableInput: any, select: any) {
     try {
@@ -234,20 +44,6 @@ export class ExtractAndInsertService {
     try {
       const rows = await this.db.cache(select);
       console.log(`Consulta realizada com sucesso na tabela ${tableInput}`);
-
-      rows.map((objeto: any) => {
-        objeto.marca = null;
-
-        for (let i = 0; i < this.produtosCorteva.length; i++) {
-          const regex = new RegExp(`${this.produtosCorteva[i]}`, 'mi');
-          const marca = regex.test(objeto.nome);
-
-          if (marca) {
-            objeto.marca = 'CORTEVA';
-            break;
-          }
-        }
-      });
 
       const columns = Object.keys(rows[0]);
       const values = rows.map((row: any) =>
@@ -343,19 +139,19 @@ export class ExtractAndInsertService {
   async extractItem() {
     await this.selectAndInputItem(
       'item',
-      `SELECT i.codigo AS id, i.nome AS nome, i.unidadeMedida AS unidMedida, itemS.pesoBruto AS peso, itemS.qtdeEmbalagemPadrao AS qtdEmbalagem, itemS.mascara AS mascara, ncm.classificacaoFiscal AS ncm, CASE WHEN i.nome LIKE "SEM%" THEN "S" ELSE "D" END AS tipo, i.dataInclusao AS dataCriacao, i.dataAlter AS dataAlteracao FROM Cgi.Item AS i JOIN Cgi.ItemSaida AS itemS ON itemS.codEmpresa=1 AND itemS.codItem=i.codigo JOIN Cgi.ClassificacaoFiscal AS ncm ON i.classificacaoFiscal=ncm.id where i.tipo=1 AND itemS.mascara LIKE "12%" AND ncm.classificacaoFiscal IN (${this.ncmCorteva})`,
+      `SELECT i.codigo AS id, i.nome AS nome, i.unidadeMedida AS unidMedida, itemS.pesoBruto AS peso, itemS.qtdeEmbalagemPadrao AS qtdEmbalagem, itemS.mascara AS mascara, ncm.classificacaoFiscal AS ncm, CASE WHEN i.nome LIKE "SEM%" THEN "S" ELSE "D" END AS tipo, i.dataInclusao AS dataCriacao, i.dataAlter AS dataAlteracao FROM Cgi.Item AS i JOIN Cgi.ItemSaida AS itemS ON itemS.codEmpresa=1 AND itemS.codItem=i.codigo JOIN Cgi.ClassificacaoFiscal AS ncm ON i.classificacaoFiscal=ncm.id where i.id in (${this.produtosAgrichen})`,
     );
   }
   async extractItemNota() {
     const listItens = await this.getListItensMysql();
     await this.selectAndInput(
       'itemNotaFiscal',
-      `SELECT item.id, item.codEmpresa AS idEmpresa, item.codEmpresa AS idEmitente, item.codEmpresa AS codEmitente, TO_NUMBER(item.numero) AS numeroNota, 1 AS serieNota, item.codProduto AS codigo, item.vlrItem AS vlrCustoEntradaUnitario, item.precoUnitarioFloat AS vlrUnitario, item.vlrItem AS vlrTotal, item.qtdeFaturada AS qtd, item.codNatOperacao AS cfop, item.vlrDesconto, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, 0 AS vlrIpi, "S" AS tipoNota, item.dataEmissao, item.dataEmissao AS dataEntrada FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codProduto IN (${listItens}) AND item.dataEmissao>=DATE('${this.dataInicio}')`,
+      `SELECT item.id, item.codEmpresa AS idEmpresa, item.codEmpresa AS idEmitente, item.codEmpresa AS codEmitente, TO_NUMBER(item.numero) AS numeroNota, 1 AS serieNota, item.codProduto AS codigo, item.vlrItem AS vlrCustoEntradaUnitario, item.precoUnitarioFloat AS vlrUnitario, item.vlrItem AS vlrTotal, item.qtdeFaturada AS qtd, item.codNatOperacao AS cfop, item.vlrDesconto, item.vlrCOFINSProp AS vlrCofins, item.vlrICMS AS vlrIcms, item.vlrPISProp AS vlrPis, item.vlrTriNFC AS vlrTributoNfc, 0 AS vlrIpi, "S" AS tipoNota, item.dataEmissao, item.dataEmissao AS dataEntrada FROM fat.NotaFiscalItem AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codProduto IN (${listItens}) AND item.dataEmissao BETWEEN DATE('2023-01-01') AND DATE('2023-12-31') `,
     );
-    await this.selectAndInput(
-      'itemNotaFiscal',
-      `SELECT item.id, item.codEmpresa AS idEmpresa, STRING(item.codEmpresa, "||", item.codFornecedor) AS idEmitente, item.codFornecedor AS codEmitente, TO_NUMBER(item.numDocumento) AS numeroNota, item.codSerie AS serieNota, TO_NUMBER(item.codMaterial) AS codigo, item.custoEntrada AS vlrCustoEntradaUnitario, CAST((item.valorTotalItem/item.quantidade) AS NUMERIC(18,4)) AS vlrUnitario, item.valorTotalItem AS vlrTotal, item.quantidade AS qtd, item.naturezaOperacao AS cfop, 0 AS vlrDesconto, item.ValorCOFINS AS vlrCofins, item.valorICMS AS vlrIcms, item.valorPisPasepRec AS vlrPis, 0 AS vlrTributoNfc, item.valorIPI AS vlrIpi, "E" AS tipoNota, null AS dataEmissao, item.dataEntrada FROM est.NotaFiscalEntradaItens AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codMaterial IN (${listItens}) AND item.dataEntrada>=DATE('${this.dataInicio}')`,
-    );
+    // await this.selectAndInput(
+    //   'itemNotaFiscal',
+    //   `SELECT item.id, item.codEmpresa AS idEmpresa, STRING(item.codEmpresa, "||", item.codFornecedor) AS idEmitente, item.codFornecedor AS codEmitente, TO_NUMBER(item.numDocumento) AS numeroNota, item.codSerie AS serieNota, TO_NUMBER(item.codMaterial) AS codigo, item.custoEntrada AS vlrCustoEntradaUnitario, CAST((item.valorTotalItem/item.quantidade) AS NUMERIC(18,4)) AS vlrUnitario, item.valorTotalItem AS vlrTotal, item.quantidade AS qtd, item.naturezaOperacao AS cfop, 0 AS vlrDesconto, item.ValorCOFINS AS vlrCofins, item.valorICMS AS vlrIcms, item.valorPisPasepRec AS vlrPis, 0 AS vlrTributoNfc, item.valorIPI AS vlrIpi, "E" AS tipoNota, null AS dataEmissao, item.dataEntrada FROM est.NotaFiscalEntradaItens AS item WHERE item.codEmpresa IN (${this.empresas}) AND item.codMaterial IN (${listItens}) AND item.dataEntrada BETWEEN DATE('2023-01-01') AND DATE('2023-12-31') `,
+    // );
   }
   async extractNota() {
     const [listEmitente, listNota, listSerie] = await this.getListNfMysql();
@@ -394,53 +190,53 @@ export class ExtractAndInsertService {
       AND 
         nota.codSerie IN (${listSerie})
       AND 
-        nota.dataEmissao>=DATE('${this.dataInicio}')
+        nota.dataEmissao BETWEEN DATE('2023-01-01') AND DATE('2023-12-31')
       `,
     );
-    await this.selectAndInput(
-      'notaFiscal',
-      `
-      SELECT nota.id, 
-        nota.codEmpresa, 
-        STRING(nota.codEmpresa, "||", nota.fornecedor) AS idEmitente, 
-        nota.fornecedor AS codEmitente, 
-        nota.codEmpresa AS idDestinatario, 
-        nota.codEmpresa AS codDestinatario, 
-        NULL AS codPedido, 
-        TO_NUMBER(nota.numDocumento) AS numero, 
-        nota.codSerie AS serie, 
-        STRING(chave.chavenfe) AS chave, 
-        NULL AS idNatOperacao, 
-        CASE WHEN nota.especieDocumento=2 THEN 1 WHEN nota.especieDocumento=3 THEN 4 WHEN nota.especieDocumento=7 THEN 2 ELSE nota.especieDocumento END AS codNatOperacao, 
-        nota.naturezaOperacao->nome AS descNatOperacao, 
-        %EXTERNAL(nota.especieDocumento) AS nomeNatOperacao, 
-        1 AS situacao, 
-        nota.dataEmissao, 
-        nota.dataEntrada 
-      FROM 
-        est.notafiscalentrada AS nota 
-      JOIN 
-        est.NotaFiscalEntradaChavElet AS chave 
-        ON 
-        nota.codEmpresa=chave.codEmpresa 
-        AND 
-        nota.numDocumento=chave.numDocumento 
-        AND 
-        nota.codSerie=chave.codSerie 
-        AND 
-        nota.fornecedor=chave.fornecedor 
-      WHERE 
-        nota.codEmpresa IN (${this.empresas}) 
-      AND 
-        nota.fornecedor IN (${listEmitente}) 
-      AND 
-        TO_NUMBER(nota.numDocumento) IN (${listNota}) 
-      AND 
-        nota.codSerie IN (${listSerie})
-      AND
-        nota.dataEmissao>=DATE('${this.dataInicio}')  
-      `,
-    );
+    // await this.selectAndInput(
+    //   'notaFiscal',
+    //   `
+    //   SELECT nota.id,
+    //     nota.codEmpresa,
+    //     STRING(nota.codEmpresa, "||", nota.fornecedor) AS idEmitente,
+    //     nota.fornecedor AS codEmitente,
+    //     nota.codEmpresa AS idDestinatario,
+    //     nota.codEmpresa AS codDestinatario,
+    //     NULL AS codPedido,
+    //     TO_NUMBER(nota.numDocumento) AS numero,
+    //     nota.codSerie AS serie,
+    //     STRING(chave.chavenfe) AS chave,
+    //     NULL AS idNatOperacao,
+    //     CASE WHEN nota.especieDocumento=2 THEN 1 WHEN nota.especieDocumento=3 THEN 4 WHEN nota.especieDocumento=7 THEN 2 ELSE nota.especieDocumento END AS codNatOperacao,
+    //     nota.naturezaOperacao->nome AS descNatOperacao,
+    //     %EXTERNAL(nota.especieDocumento) AS nomeNatOperacao,
+    //     1 AS situacao,
+    //     nota.dataEmissao,
+    //     nota.dataEntrada
+    //   FROM
+    //     est.notafiscalentrada AS nota
+    //   JOIN
+    //     est.NotaFiscalEntradaChavElet AS chave
+    //     ON
+    //     nota.codEmpresa=chave.codEmpresa
+    //     AND
+    //     nota.numDocumento=chave.numDocumento
+    //     AND
+    //     nota.codSerie=chave.codSerie
+    //     AND
+    //     nota.fornecedor=chave.fornecedor
+    //   WHERE
+    //     nota.codEmpresa IN (${this.empresas})
+    //   AND
+    //     nota.fornecedor IN (${listEmitente})
+    //   AND
+    //     TO_NUMBER(nota.numDocumento) IN (${listNota})
+    //   AND
+    //     nota.codSerie IN (${listSerie})
+    //   AND
+    //     nota.dataEmissao BETWEEN DATE('2023-01-01') AND DATE('2023-12-31')
+    //   `,
+    // );
   }
   async extractNotaDevolucao() {
     const [listEmitente, listNota, listSerie] = await this.getListNfMysql();
@@ -478,7 +274,7 @@ export class ExtractAndInsertService {
       AND 
         nfe.dataEmissao=nfd.dataDevolucao
       AND
-        nfd.dataEmissao>=DATE('${this.dataInicio}')
+        nfd.dataEmissao BETWEEN DATE('2023-01-01') AND DATE('2023-12-31') 
       `,
     );
     await this.selectAndInput(
@@ -502,7 +298,7 @@ export class ExtractAndInsertService {
       AND 
         codSerie IN (${listSerie})
       AND  
-        dataEmissao>=DATE('${this.dataInicio}')
+        dataEmissao BETWEEN DATE('2023-01-01') AND DATE('2023-12-31') 
         `,
     );
   }

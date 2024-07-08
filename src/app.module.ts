@@ -4,14 +4,15 @@ import { RouterModule } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { BillingsModule } from './billings/billings.module';
 import { CompaniesModule } from './companies/companies.module';
 import { CustomersModule } from './customers/customers.module';
 import { DbModule } from './db/db.module';
 import { ExtractAndInsertModule } from './extract-and-insert/extract-and-insert.module';
+import { FaturamentoModule } from './faturamento/faturamento.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { StocksModule } from './stocks/stocks.module';
-import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -52,10 +53,15 @@ import { AuthModule } from './auth/auth.module';
             path: 'sendStock',
             module: StocksModule,
           },
+          {
+            path: 'faturamento',
+            module: FaturamentoModule,
+          },
         ],
       },
     ]),
     AuthModule,
+    FaturamentoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

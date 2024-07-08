@@ -1,6 +1,6 @@
 version: '3.7'
 
-name: db-api-corteva-dev
+name: db-api-agrichen-dev
 
 services:
   db:
