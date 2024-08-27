@@ -78,6 +78,7 @@ export class ExtractAndInsertService {
     'PULSOR',
     'QUELEX',
     'RADIANT',
+    'RANCONA',
     'RASTER',
     'RELICTA',
     'REVOLUX',
